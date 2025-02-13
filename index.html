@@ -14,7 +14,7 @@
         .logo {
             display: block;
             margin: 0 auto;
-            width: 150px; /* Ajusta el tamaño según necesites */
+            width: 150px;
             height: auto;
             padding-bottom: 10px;
         }
@@ -53,22 +53,16 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .merged-header {
-            background-color: #d60000;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            padding: 15px;
-        }
         .test-cell {
-            background-color: #ffcccc !important; /* Rød baggrund for prøver */
+            background-color: #ffcccc !important; /* Rojo claro para pruebas */
             color: black;
             font-weight: bold;
         }
         .kr-row {
-            background-color: #ffd700 !important; /* Gul baggrund for KR */
+            background-color: #ffd700 !important; /* Color dorado para KR */
             font-weight: bold;
+            border-top: 3px solid #d60000;
+            border-bottom: 3px solid #d60000;
         }
         .event-separator {
             height: 8px;
@@ -85,7 +79,6 @@
 </head>
 <body>
 
-    <!-- LOGO AÑADIDO AQUÍ -->
     <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klub Logo" class="logo">
 
     <h1>Klubrekorder</h1>
@@ -122,11 +115,7 @@
             let rows = data.split("\n").map(row => row.split(","));
             rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
 
-            let table = "<thead>";
-
-
-            // Generar los encabezados de la tabla
-            table += "<tr>";
+            let table = "<thead><tr>";
             rows[1].forEach(col => {
                 let colName = col.trim();
                 let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
@@ -135,29 +124,22 @@
             });
             table += "</tr></thead><tbody>";
 
-            let lastEvent = "";
-
             for (let i = 2; i < rows.length; i++) {  
                 let rowData = rows[i].map(cell => cell.trim());
-                let rowClass = rowData[0] === "KR" ? "kr-row" : "";
+                
+                // 🔥 Ahora busca "KR" en TODAS las celdas, no solo en la primera
+                let isKR = rowData.some(cell => cell === "KR");
+                let rowClass = isKR ? "kr-row" : "";
 
-                if (rowData[0] !== "" && rowData[0] !== "SC" && rowData[0] !== "KR") {
-                    let currentEvent = rowData[1];
-
-                    if (lastEvent !== "" && currentEvent !== lastEvent) {
-                        table += `<tr class="event-separator"><td colspan="${rowData.length}"></td></tr>`;
-                    }
-                    lastEvent = currentEvent;
-                }
-
-                table += `<tr class="${rowClass}">`;
-                rowData.forEach((cell, index) => {
+                let rowHTML = `<tr class="${rowClass}">`;
+                rowData.forEach(cell => {
                     let cleanCell = cell.replace(/"/g, "");
                     let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
                     let cellClass = isTestCell ? "test-cell" : "";
-                    table += `<td class="${cellClass}">${cleanCell}</td>`;
+                    rowHTML += `<td class="${cellClass}">${cleanCell}</td>`;
                 });
-                table += "</tr>";
+                rowHTML += "</tr>";
+                table += rowHTML;
             }
 
             table += "</tbody>";
