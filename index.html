@@ -13,7 +13,8 @@
         }
         h1 {
             color: #d60000;
-            font-size: 32px;
+            font-size: 34px;
+            margin-bottom: 10px;
         }
         .container {
             width: 95%;
@@ -22,47 +23,70 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.15);
             overflow-x: auto;
         }
         select {
             padding: 10px;
             font-size: 16px;
             margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0px 5px; /* Espacio entre bloques */
             margin-top: 20px;
             table-layout: auto;
         }
         th, td {
             padding: 12px;
-            border: 1px solid #000;
+            border: 1px solid #ddd;
             text-align: center;
-            font-size: 14px;
+            font-size: 16px;
             vertical-align: middle;
-            white-space: nowrap; /* Evita que los tiempos se dividan en dos líneas */
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         th {
-            background-color: #d60000;
+            background-color: #b30000;
             color: white;
             font-weight: bold;
+            font-size: 18px;
+            padding: 14px;
         }
         .subheader {
-            background-color: #f2dede; /* Color rosado similar a Google Sheets */
+            background-color: #ffdddd;
             font-weight: bold;
+            font-size: 16px;
         }
         .kr-row {
-            background-color: #ffd700 !important; /* Color dorado para KR */
+            background-color: #ffd700 !important;
             font-weight: bold;
+            font-size: 18px;
         }
         .event-separator {
-            height: 8px;
+            height: 10px;
             background-color: transparent;
-            border-bottom: 2px solid #d60000; /* Línea roja para separar eventos */
+            border-bottom: 3px solid #d60000;
+        }
+        .event-header {
+            background-color: #b30000;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            text-transform: uppercase;
+            padding: 12px;
+        }
+        .event-alternate {
+            background-color: #ffeeee;
+        }
+        .column-gap {
+            width: 20px;
+            background-color: white;
+            border: none;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -90,7 +114,6 @@
     </div>
 
     <script>
-        // URLs de cada pestaña con los GID correctos
         const sheetUrls = {
             "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
             "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
@@ -108,36 +131,42 @@
             
             let rows = data.split("\n").map(row => row.split(","));
 
-            // Eliminar filas completamente vacías
             rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
 
             let table = "<thead><tr>";
             rows[0].forEach(col => {
                 table += `<th>${col.trim()}</th>`;
             });
-            table += "</tr></thead><tbody>";
+            table += `<th class="column-gap"></th></tr></thead><tbody>`;
 
-            let lastEvent = ""; // Para separar eventos
+            let lastEvent = "";
+            let rowIndex = 0;
 
             for (let i = 1; i < rows.length; i++) {
                 let rowData = rows[i].map(cell => cell.trim());
-                let rowClass = rowData[0] === "KR" ? "kr-row" : ""; // Aplica clase dorada a KR
+                let rowClass = rowData[0] === "KR" ? "kr-row" : (rowIndex % 2 === 0 ? "event-alternate" : "");
+                let isNewEvent = rowData[1] !== lastEvent && rowData[1] !== "";
 
-                if (rowData[0] !== "" && rowData[0] !== "SC" && rowData[0] !== "KR") {
-                    let currentEvent = rowData[1]; // 50 Fri, 100 Fri, etc.
-
-                    if (lastEvent !== "" && currentEvent !== lastEvent) {
-                        table += `<tr class="event-separator"><td colspan="${rowData.length}"></td></tr>`; // Agrega separación
-                    }
-                    lastEvent = currentEvent;
+                if (isNewEvent) {
+                    table += `<tr class="event-separator"><td colspan="${rowData.length}"></td></tr>`;
+                    table += `<tr><th class="event-header" colspan="${rowData.length}">${rowData[1]}</th></tr>`;
                 }
 
+                lastEvent = rowData[1];
                 table += `<tr class="${rowClass}">`;
+
                 rowData.forEach(cell => {
                     let cleanCell = cell.replace(/"/g, "");
                     table += `<td>${cleanCell}</td>`;
                 });
-                table += "</tr>";
+
+                table += `<td class="column-gap"></td></tr>`;
+
+                if (rowData[0] === "KR") {
+                    table += `<tr class="event-separator"><td colspan="${rowData.length}"></td></tr>`;
+                }
+
+                rowIndex++;
             }
 
             table += "</tbody>";
@@ -149,7 +178,6 @@
             cargarDatos(this.value);
         });
 
-        // Cargar la primera hoja por defecto
         window.onload = function() {
             cargarDatos("DRENGE_KORTBANE");
         };
