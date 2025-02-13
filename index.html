@@ -32,8 +32,7 @@
         }
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0px 5px; /* Espacio entre bloques */
+            border-collapse: collapse;
             margin-top: 20px;
             table-layout: auto;
         }
@@ -49,11 +48,12 @@
         }
         /* Encabezados de cada bloque */
         .event-header {
-            background-color: #b30000; /* Rojo oscuro */
+            background-color: #a00000; /* Rojo oscuro */
             color: white;
             font-weight: bold;
             font-size: 16px;
             text-transform: uppercase;
+            padding: 10px;
         }
         .subheader {
             background-color: #f2dede; /* Color rosado similar a Google Sheets */
@@ -64,15 +64,15 @@
             font-weight: bold;
         }
         .event-alternate {
-            background-color: #ffcccc; /* Rojo más claro */
+            background-color: #ffe6e6; /* Rojo claro */
         }
         .event-separator {
             height: 10px;
-            background-color: transparent;
-            border-bottom: 3px solid #d60000;
+            background-color: white;
+            border-bottom: 3px solid #d60000; /* Línea roja separadora */
         }
         .column-gap {
-            width: 15px; /* Espacio adicional al lado de "År" */
+            width: 20px; /* Espacio adicional al lado de "År" */
             background-color: white;
             border: none;
         }
