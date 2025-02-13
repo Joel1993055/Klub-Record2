@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Club Record</title>
+    <title>Records del Club</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -12,11 +12,12 @@
             background-color: #f4f4f4;
         }
         h1 {
-            color: #333;
+            color: #d60000;
+            font-size: 32px;
         }
         .container {
-            width: 90%;
-            max-width: 900px;
+            width: 95%;
+            max-width: 1200px;
             margin: auto;
             background: white;
             padding: 20px;
@@ -32,18 +33,18 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            table-layout: fixed;
         }
         th, td {
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #000;
             text-align: center;
-            white-space: pre-wrap; /* Mantiene el formato de Google Sheets */
+            white-space: pre-wrap;
+            font-size: 14px;
         }
         th {
-            background-color: #007BFF;
+            background-color: #d60000;
             color: white;
-            position: sticky;
-            top: 0;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -59,14 +60,15 @@
 </head>
 <body>
 
-    <h1>Records del Club</h1>
+    <h1>Klub Rekord</h1>
     
     <div class="container">
         <label for="sheetSelector">Selecciona una categoría:</label>
         <select id="sheetSelector">
-            <option value="Pier">Pier</option>
-            <option value="Drange">Drange</option>
-            <option value="Otra">Otra</option>
+            <option value="DRENGE_KORTBANE">Drenge Kortbane</option>
+            <option value="DRENGE_LANGBANE">Drenge Langbane</option>
+            <option value="PIGER_KORTBANE">Piger Kortbane</option>
+            <option value="PIGER_LANGBANE">Piger Langbane</option>
         </select>
 
         <p class="loading">Cargando datos...</p>
@@ -74,10 +76,12 @@
     </div>
 
     <script>
+        // URLs de cada pestaña de Google Sheets con su GID correspondiente
         const sheetUrls = {
-            "Pier": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=0&output=csv",
-            "Drange": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=123456789&output=csv",
-            "Otra": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=987654321&output=csv"
+            "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
+            "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
+            "PIGER_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=665145950&output=csv",
+            "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv"
         };
 
         async function cargarDatos(sheet) {
@@ -115,7 +119,7 @@
 
         // Cargar la primera hoja por defecto
         window.onload = function() {
-            cargarDatos("Pier");
+            cargarDatos("DRENGE_KORTBANE");
         };
     </script>
 
