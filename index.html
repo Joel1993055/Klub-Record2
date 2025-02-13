@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="da">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Records del Club</title>
+    <title>Klubrekorder</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -11,10 +11,16 @@
             padding: 20px; 
             background-color: #f4f4f4;
         }
+        .logo {
+            display: block;
+            margin: 0 auto;
+            width: 150px; /* Ajusta el tamaño según necesites */
+            height: auto;
+            padding-bottom: 10px;
+        }
         h1 {
             color: #d60000;
-            font-size: 34px;
-            margin-bottom: 10px;
+            font-size: 32px;
         }
         .container {
             width: 95%;
@@ -23,70 +29,51 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.15);
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             overflow-x: auto;
         }
         select {
             padding: 10px;
             font-size: 16px;
             margin-bottom: 20px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
         }
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0px 5px; /* Espacio entre bloques */
+            border-collapse: collapse;
             margin-top: 20px;
             table-layout: auto;
         }
         th, td {
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #000;
             text-align: center;
-            font-size: 16px;
+            font-size: 14px;
             vertical-align: middle;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        th {
-            background-color: #b30000;
+        .merged-header {
+            background-color: #d60000;
             color: white;
-            font-weight: bold;
             font-size: 18px;
-            padding: 14px;
-        }
-        .subheader {
-            background-color: #ffdddd;
             font-weight: bold;
-            font-size: 16px;
+            text-align: center;
+            padding: 15px;
+        }
+        .test-cell {
+            background-color: #ffcccc !important; /* Rød baggrund for prøver */
+            color: black;
+            font-weight: bold;
         }
         .kr-row {
-            background-color: #ffd700 !important;
+            background-color: #ffd700 !important; /* Gul baggrund for KR */
             font-weight: bold;
-            font-size: 18px;
         }
         .event-separator {
-            height: 10px;
+            height: 8px;
             background-color: transparent;
-            border-bottom: 3px solid #d60000;
-        }
-        .event-header {
-            background-color: #b30000;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
-            text-transform: uppercase;
-            padding: 12px;
-        }
-        .event-alternate {
-            background-color: #ffeeee;
-        }
-        .column-gap {
-            width: 20px;
-            background-color: white;
-            border: none;
+            border-bottom: 2px solid #d60000;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -98,10 +85,13 @@
 </head>
 <body>
 
-    <h1>Klub Rekord</h1>
+    <!-- LOGO AÑADIDO AQUÍ -->
+    <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klub Logo" class="logo">
+
+    <h1>Klubrekorder</h1>
     
     <div class="container">
-        <label for="sheetSelector">Selecciona una categoría:</label>
+        <label for="sheetSelector">Vælg en kategori:</label>
         <select id="sheetSelector">
             <option value="DRENGE_KORTBANE">Drenge Kortbane</option>
             <option value="DRENGE_LANGBANE">Drenge Langbane</option>
@@ -109,7 +99,7 @@
             <option value="PIGER_LANGBANE">Piger Langbane</option>
         </select>
 
-        <p class="loading">Cargando datos...</p>
+        <p class="loading">Indlæser data...</p>
         <table id="records"></table>
     </div>
 
@@ -130,43 +120,47 @@
             const data = await response.text();
             
             let rows = data.split("\n").map(row => row.split(","));
-
             rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
 
-            let table = "<thead><tr>";
-            rows[0].forEach(col => {
-                table += `<th>${col.trim()}</th>`;
+            let table = "<thead>";
+
+            // Crear la primera fila fusionada en rojo
+            let colSpan = rows[0].length;
+            table += `<tr><th class="merged-header" colspan="${colSpan}">Klubrekorder</th></tr>`;
+
+            // Generar los encabezados de la tabla
+            table += "<tr>";
+            rows[1].forEach(col => {
+                let colName = col.trim();
+                let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
+                let className = isTest ? "test-cell" : "";
+                table += `<th class="${className}">${colName}</th>`;
             });
-            table += `<th class="column-gap"></th></tr></thead><tbody>`;
+            table += "</tr></thead><tbody>";
 
             let lastEvent = "";
-            let rowIndex = 0;
 
-            for (let i = 1; i < rows.length; i++) {
+            for (let i = 2; i < rows.length; i++) {  
                 let rowData = rows[i].map(cell => cell.trim());
-                let rowClass = rowData[0] === "KR" ? "kr-row" : (rowIndex % 2 === 0 ? "event-alternate" : "");
-                let isNewEvent = rowData[1] !== lastEvent && rowData[1] !== "";
+                let rowClass = rowData[0] === "KR" ? "kr-row" : "";
 
-                if (isNewEvent) {
-                    table += `<tr class="event-separator"><td colspan="${rowData.length}"></td></tr>`;
-                    table += `<tr><th class="event-header" colspan="${rowData.length}">${rowData[1]}</th></tr>`;
+                if (rowData[0] !== "" && rowData[0] !== "SC" && rowData[0] !== "KR") {
+                    let currentEvent = rowData[1];
+
+                    if (lastEvent !== "" && currentEvent !== lastEvent) {
+                        table += `<tr class="event-separator"><td colspan="${rowData.length}"></td></tr>`;
+                    }
+                    lastEvent = currentEvent;
                 }
 
-                lastEvent = rowData[1];
                 table += `<tr class="${rowClass}">`;
-
-                rowData.forEach(cell => {
+                rowData.forEach((cell, index) => {
                     let cleanCell = cell.replace(/"/g, "");
-                    table += `<td>${cleanCell}</td>`;
+                    let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
+                    let cellClass = isTestCell ? "test-cell" : "";
+                    table += `<td class="${cellClass}">${cleanCell}</td>`;
                 });
-
-                table += `<td class="column-gap"></td></tr>`;
-
-                if (rowData[0] === "KR") {
-                    table += `<tr class="event-separator"><td colspan="${rowData.length}"></td></tr>`;
-                }
-
-                rowIndex++;
+                table += "</tr>";
             }
 
             table += "</tbody>";
