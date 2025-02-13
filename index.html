@@ -64,4 +64,96 @@
             background-color: transparent;
             border-bottom: 2px solid #d60000; /* Línea roja para separar eventos */
         }
-        tr:nth-child(e
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Klub Rekord</h1>
+    
+    <div class="container">
+        <label for="sheetSelector">Selecciona una categoría:</label>
+        <select id="sheetSelector">
+            <option value="DRENGE_KORTBANE">Drenge Kortbane</option>
+            <option value="DRENGE_LANGBANE">Drenge Langbane</option>
+            <option value="PIGER_KORTBANE">Piger Kortbane</option>
+            <option value="PIGER_LANGBANE">Piger Langbane</option>
+        </select>
+
+        <p class="loading">Cargando datos...</p>
+        <table id="records"></table>
+    </div>
+
+    <script>
+        // URLs de cada pestaña con los GID correctos
+        const sheetUrls = {
+            "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
+            "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
+            "PIGER_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=665145950&output=csv",
+            "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv"
+        };
+
+        async function cargarDatos(sheet) {
+            document.querySelector(".loading").style.display = "block";
+            document.getElementById("records").innerHTML = "";
+
+            const url = sheetUrls[sheet];
+            const response = await fetch(url);
+            const data = await response.text();
+            
+            let rows = data.split("\n").map(row => row.split(","));
+
+            // Eliminar filas completamente vacías
+            rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
+
+            let table = "<thead><tr>";
+            rows[0].forEach(col => {
+                table += `<th>${col.trim()}</th>`;
+            });
+            table += "</tr></thead><tbody>";
+
+            let lastEvent = ""; // Para separar eventos
+
+            for (let i = 1; i < rows.length; i++) {
+                let rowData = rows[i].map(cell => cell.trim());
+                let rowClass = rowData[0] === "KR" ? "kr-row" : ""; // Aplica clase dorada a KR
+
+                if (rowData[0] !== "" && rowData[0] !== "SC" && rowData[0] !== "KR") {
+                    let currentEvent = rowData[1]; // 50 Fri, 100 Fri, etc.
+
+                    if (lastEvent !== "" && currentEvent !== lastEvent) {
+                        table += `<tr class="event-separator"><td colspan="${rowData.length}"></td></tr>`; // Agrega separación
+                    }
+                    lastEvent = currentEvent;
+                }
+
+                table += `<tr class="${rowClass}">`;
+                rowData.forEach(cell => {
+                    let cleanCell = cell.replace(/"/g, "");
+                    table += `<td>${cleanCell}</td>`;
+                });
+                table += "</tr>";
+            }
+
+            table += "</tbody>";
+            document.getElementById("records").innerHTML = table;
+            document.querySelector(".loading").style.display = "none"; 
+        }
+
+        document.getElementById("sheetSelector").addEventListener("change", function() {
+            cargarDatos(this.value);
+        });
+
+        // Cargar la primera hoja por defecto
+        window.onload = function() {
+            cargarDatos("DRENGE_KORTBANE");
+        };
+    </script>
+
+</body>
+</html>
