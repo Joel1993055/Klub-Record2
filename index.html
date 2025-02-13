@@ -37,12 +37,12 @@
             table-layout: auto;
         }
         th, td {
-            padding: 10px;
-            border: 2px solid black; /* Bordes más gruesos para diferenciar */
+            padding: 8px;
+            border: 1px solid #000;
             text-align: center;
             font-size: 14px;
             vertical-align: middle;
-            white-space: nowrap;
+            white-space: nowrap; /* Evita que los tiempos se dividan en dos líneas */
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -50,17 +50,10 @@
             background-color: #d60000;
             color: white;
             font-weight: bold;
-            border: 3px solid black; /* Bordes más gruesos en los encabezados */
         }
         .subheader {
             background-color: #f2dede; /* Color rosado similar a Google Sheets */
             font-weight: bold;
-            border-top: 3px solid black;
-            border-bottom: 3px solid black;
-        }
-        .block {
-            border: 3px solid black; /* Hace los bloques de tabla más visibles */
-            background-color: #ffffff;
         }
         .highlight {
             font-weight: bold;
@@ -115,13 +108,13 @@
 
             let table = "<thead><tr>";
             rows[0].forEach(col => {
-                table += `<th class="block">${col.trim()}</th>`;
+                table += `<th>${col.trim()}</th>`;
             });
             table += "</tr></thead><tbody>";
 
             for (let i = 1; i < rows.length; i++) {
                 let rowClass = (rows[i][0].trim() === "" || rows[i][0].includes("Bryst")) ? "subheader" : "";
-                table += `<tr class="${rowClass} block">`;
+                table += `<tr class="${rowClass}">`;
                 rows[i].forEach(cell => {
                     let cleanCell = cell.replace(/"/g, "").trim(); // Quita comillas dobles
                     let highlightClass = cleanCell.includes("KR") ? "highlight" : "";
