@@ -37,7 +37,7 @@
             table-layout: auto;
         }
         th, td {
-            padding: 8px;
+            padding: 12px;
             border: 1px solid #000;
             text-align: center;
             font-size: 14px;
@@ -55,88 +55,13 @@
             background-color: #f2dede; /* Color rosado similar a Google Sheets */
             font-weight: bold;
         }
-        .highlight {
+        .kr-row {
+            background-color: #ffd700 !important; /* Color dorado para KR */
             font-weight: bold;
-            background-color: #ffd700;
         }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
+        .event-separator {
+            height: 8px;
+            background-color: transparent;
+            border-bottom: 2px solid #d60000; /* Línea roja para separar eventos */
         }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-    </style>
-</head>
-<body>
-
-    <h1>Klub Rekord</h1>
-    
-    <div class="container">
-        <label for="sheetSelector">Selecciona una categoría:</label>
-        <select id="sheetSelector">
-            <option value="DRENGE_KORTBANE">Drenge Kortbane</option>
-            <option value="DRENGE_LANGBANE">Drenge Langbane</option>
-            <option value="PIGER_KORTBANE">Piger Kortbane</option>
-            <option value="PIGER_LANGBANE">Piger Langbane</option>
-        </select>
-
-        <p class="loading">Cargando datos...</p>
-        <table id="records"></table>
-    </div>
-
-    <script>
-        // URLs de cada pestaña con los GID correctos
-        const sheetUrls = {
-            "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
-            "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
-            "PIGER_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=665145950&output=csv",
-            "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv"
-        };
-
-        async function cargarDatos(sheet) {
-            document.querySelector(".loading").style.display = "block";
-            document.getElementById("records").innerHTML = "";
-
-            const url = sheetUrls[sheet];
-            const response = await fetch(url);
-            const data = await response.text();
-            
-            let rows = data.split("\n").map(row => row.split(","));
-
-            // Eliminar filas completamente vacías
-            rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
-
-            let table = "<thead><tr>";
-            rows[0].forEach(col => {
-                table += `<th>${col.trim()}</th>`;
-            });
-            table += "</tr></thead><tbody>";
-
-            for (let i = 1; i < rows.length; i++) {
-                let rowClass = (rows[i][0].trim() === "" || rows[i][0].includes("Bryst")) ? "subheader" : "";
-                table += `<tr class="${rowClass}">`;
-                rows[i].forEach(cell => {
-                    let cleanCell = cell.replace(/"/g, "").trim(); // Quita comillas dobles
-                    let highlightClass = cleanCell.includes("KR") ? "highlight" : "";
-                    table += `<td class="${highlightClass}">${cleanCell}</td>`;
-                });
-                table += "</tr>";
-            }
-
-            table += "</tbody>";
-            document.getElementById("records").innerHTML = table;
-            document.querySelector(".loading").style.display = "none"; 
-        }
-
-        document.getElementById("sheetSelector").addEventListener("change", function() {
-            cargarDatos(this.value);
-        });
-
-        // Cargar la primera hoja por defecto
-        window.onload = function() {
-            cargarDatos("DRENGE_KORTBANE");
-        };
-    </script>
-
-</body>
-</html>
+        tr:nth-child(e
