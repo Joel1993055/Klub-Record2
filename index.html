@@ -23,6 +23,7 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
         }
         select {
             padding: 10px;
@@ -36,15 +37,17 @@
             table-layout: fixed;
         }
         th, td {
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #000;
             text-align: center;
-            white-space: pre-wrap;
             font-size: 14px;
+            vertical-align: middle;
+            word-wrap: break-word;
         }
         th {
             background-color: #d60000;
             color: white;
+            font-weight: bold;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -55,6 +58,10 @@
         .loading {
             font-size: 18px;
             color: #555;
+        }
+        .highlight {
+            font-weight: bold;
+            background-color: #ffd700;
         }
     </style>
 </head>
@@ -76,7 +83,7 @@
     </div>
 
     <script>
-        // URLs de cada pestaña de Google Sheets con su GID correspondiente
+        // URLs de cada pestaña con los GID correctos
         const sheetUrls = {
             "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
             "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
@@ -92,7 +99,11 @@
             const response = await fetch(url);
             const data = await response.text();
             
-            const rows = data.split("\n").map(row => row.split(","));
+            // Convertir CSV en filas y columnas
+            let rows = data.split("\n").map(row => row.split(","));
+
+            // Eliminar filas completamente vacías y ajustar celdas
+            rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
 
             let table = "<thead><tr>";
             rows[0].forEach(col => {
@@ -103,7 +114,8 @@
             for (let i = 1; i < rows.length; i++) {
                 table += "<tr>";
                 rows[i].forEach(cell => {
-                    table += `<td>${cell.trim()}</td>`;
+                    let highlightClass = cell.includes("KR") ? "highlight" : "";
+                    table += `<td class="${highlightClass}">${cell.trim()}</td>`;
                 });
                 table += "</tr>";
             }
