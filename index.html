@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Records del Club</title>
+    <title>Club Record</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -23,6 +23,11 @@
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
         }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -31,7 +36,8 @@
         th, td {
             padding: 12px;
             border: 1px solid #ddd;
-            text-align: left;
+            text-align: center;
+            white-space: pre-wrap; /* Mantiene el formato de Google Sheets */
         }
         th {
             background-color: #007BFF;
@@ -54,29 +60,46 @@
 <body>
 
     <h1>Records del Club</h1>
+    
     <div class="container">
+        <label for="sheetSelector">Selecciona una categoría:</label>
+        <select id="sheetSelector">
+            <option value="Pier">Pier</option>
+            <option value="Drange">Drange</option>
+            <option value="Otra">Otra</option>
+        </select>
+
         <p class="loading">Cargando datos...</p>
         <table id="records"></table>
     </div>
 
     <script>
-        async function cargarDatos() {
-            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?output=csv";
+        const sheetUrls = {
+            "Pier": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=0&output=csv",
+            "Drange": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=123456789&output=csv",
+            "Otra": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=987654321&output=csv"
+        };
+
+        async function cargarDatos(sheet) {
+            document.querySelector(".loading").style.display = "block";
+            document.getElementById("records").innerHTML = "";
+
+            const url = sheetUrls[sheet];
             const response = await fetch(url);
             const data = await response.text();
             
             const rows = data.split("\n").map(row => row.split(","));
-            
+
             let table = "<thead><tr>";
             rows[0].forEach(col => {
-                table += `<th>${col}</th>`;
+                table += `<th>${col.trim()}</th>`;
             });
             table += "</tr></thead><tbody>";
 
             for (let i = 1; i < rows.length; i++) {
                 table += "<tr>";
                 rows[i].forEach(cell => {
-                    table += `<td>${cell}</td>`;
+                    table += `<td>${cell.trim()}</td>`;
                 });
                 table += "</tr>";
             }
@@ -86,7 +109,14 @@
             document.querySelector(".loading").style.display = "none"; 
         }
 
-        window.onload = cargarDatos;
+        document.getElementById("sheetSelector").addEventListener("change", function() {
+            cargarDatos(this.value);
+        });
+
+        // Cargar la primera hoja por defecto
+        window.onload = function() {
+            cargarDatos("Pier");
+        };
     </script>
 
 </body>
