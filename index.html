@@ -14,7 +14,7 @@
         .logo {
             display: block;
             margin: 0 auto;
-            width: 150px; /* Ajusta el tamaño según necesites */
+            width: 200px; /* Ajusta el tamaño del logo */
             height: auto;
             padding-bottom: 10px;
         }
@@ -31,6 +31,16 @@
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             overflow-x: auto;
+        }
+        input {
+            width: 80%;
+            max-width: 400px;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px auto;
+            display: block;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         select {
             padding: 10px;
@@ -62,12 +72,12 @@
             padding: 15px;
         }
         .test-cell {
-            background-color: #ffcccc !important; /* Rød baggrund for prøver */
+            background-color: #ffcccc !important;
             color: black;
             font-weight: bold;
         }
         .kr-row {
-            background-color: #ffd700 !important; /* Gul baggrund for KR */
+            background-color: #ffd700 !important;
             font-weight: bold;
         }
         .event-separator {
@@ -85,7 +95,7 @@
 </head>
 <body>
 
-    <!-- LOGO AÑADIDO AQUÍ -->
+    <!-- LOGO -->
     <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klub Logo" class="logo">
 
     <h1>Klubrekorder</h1>
@@ -98,6 +108,9 @@
             <option value="PIGER_KORTBANE">Piger Kortbane</option>
             <option value="PIGER_LANGBANE">Piger Langbane</option>
         </select>
+
+        <!-- Campo de búsqueda -->
+        <input type="text" id="searchInput" placeholder="Søg efter navn eller disciplin..." onkeyup="searchTable()">
 
         <p class="loading">Indlæser data...</p>
         <table id="records"></table>
@@ -124,17 +137,12 @@
 
             let table = "<thead>";
 
-            // Crear la primera fila fusionada en rojo
             let colSpan = rows[0].length;
             table += `<tr><th class="merged-header" colspan="${colSpan}">Klubrekorder</th></tr>`;
 
-            // Generar los encabezados de la tabla
             table += "<tr>";
             rows[1].forEach(col => {
-                let colName = col.trim();
-                let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
-                let className = isTest ? "test-cell" : "";
-                table += `<th class="${className}">${colName}</th>`;
+                table += `<th>${col.trim()}</th>`;
             });
             table += "</tr></thead><tbody>";
 
@@ -154,11 +162,9 @@
                 }
 
                 table += `<tr class="${rowClass}">`;
-                rowData.forEach((cell, index) => {
+                rowData.forEach(cell => {
                     let cleanCell = cell.replace(/"/g, "");
-                    let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
-                    let cellClass = isTestCell ? "test-cell" : "";
-                    table += `<td class="${cellClass}">${cleanCell}</td>`;
+                    table += `<td>${cleanCell}</td>`;
                 });
                 table += "</tr>";
             }
@@ -166,6 +172,16 @@
             table += "</tbody>";
             document.getElementById("records").innerHTML = table;
             document.querySelector(".loading").style.display = "none"; 
+        }
+
+        function searchTable() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("#records tbody tr");
+
+            rows.forEach(row => {
+                let text = row.textContent.toLowerCase();
+                row.style.display = text.includes(input) ? "" : "none";
+            });
         }
 
         document.getElementById("sheetSelector").addEventListener("change", function() {
