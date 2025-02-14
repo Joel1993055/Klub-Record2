@@ -21,6 +21,18 @@
         h1 {
             color: #d60000;
             font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .selector-container {
+            margin: 10px auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
         }
         .container {
             width: 95%;
@@ -31,11 +43,6 @@
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             overflow-x: auto;
-        }
-        select {
-            padding: 10px;
-            font-size: 16px;
-            margin-bottom: 20px;
         }
         table {
             width: 100%;
@@ -80,8 +87,9 @@
     <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klub Logo" class="logo">
 
     <h1>Klubrekorder</h1>
-    
-    <div class="container">
+
+    <!-- SELECTOR DE CATEGORÍA MOVIDO AQUÍ -->
+    <div class="selector-container">
         <label for="sheetSelector">Vælg en kategori:</label>
         <select id="sheetSelector">
             <option value="DRENGE_KORTBANE">Drenge Kortbane</option>
@@ -89,7 +97,9 @@
             <option value="PIGER_KORTBANE">Piger Kortbane</option>
             <option value="PIGER_LANGBANE">Piger Langbane</option>
         </select>
+    </div>
 
+    <div class="container">
         <p class="loading">Indlæser data...</p>
         <table id="records"></table>
     </div>
@@ -125,7 +135,6 @@
             for (let i = 2; i < rows.length; i++) {  
                 let rowData = rows[i].map(cell => cell.trim());
                 
-                // 🔥 Ahora busca "KR" en TODAS las celdas, no solo en la primera
                 let isKR = rowData.some(cell => cell === "KR");
                 let rowClass = isKR ? "kr-row" : "";
 
