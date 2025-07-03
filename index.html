@@ -1,175 +1,193 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Klubrekorder</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-            background-color: #f4f4f4;
-        }
-        .logo {
-            display: block;
-            margin: 0 auto;
-            width: 150px;
-            height: auto;
-            padding-bottom: 10px;
-        }
-        h1 {
-            color: #d60000;
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-        .button-container {
-            margin: 20px auto;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-        button.category-btn {
-            padding: 10px 16px;
-            font-size: 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #d60000;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button.category-btn:hover {
-            background-color: #a50000;
-        }
-        button.category-btn.active {
-            background-color: #333;
-        }
-        .container {
-            width: 95%;
-            max-width: 1200px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            border: 1px solid #000;
-            text-align: center;
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .test-cell {
-            background-color: #ffcccc !important;
-            color: black;
-            font-weight: bold;
-        }
-        .kr-row {
-            font-weight: bold;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Klubrekorder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .logo {
+      display: block;
+      margin: 0 auto;
+      width: 150px;
+      height: auto;
+      padding-bottom: 10px;
+    }
+    h1 {
+      color: #d60000;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .button-container {
+      margin: 20px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    button.category-btn {
+      padding: 10px 16px;
+      font-size: 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #d60000;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button.category-btn:hover {
+      background-color: #a50000;
+    }
+    button.category-btn.active {
+      background-color: #333;
+    }
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #000;
+      text-align: center;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .test-cell {
+      background-color: #ffcccc !important;
+      color: black;
+      font-weight: bold;
+    }
+    .kr-row {
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    .loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .shark-spinner {
+      font-size: 50px;
+      display: inline-block;
+      animation: spinShark 1s linear infinite;
+    }
+    @keyframes spinShark {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
 
-    <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klub Logo" class="logo">
+  <!-- Tu logo del club aquí -->
+  <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klub Logo" class="logo" />
 
-    <h1>Klubrekorder</h1>
+  <h1>Klubrekorder</h1>
 
-    <div class="button-container">
-        <button class="category-btn" data-category="DRENGE_KORTBANE">Drenge Kortbane</button>
-        <button class="category-btn" data-category="DRENGE_LANGBANE">Drenge Langbane</button>
-        <button class="category-btn" data-category="PIGER_KORTBANE">Piger Kortbane</button>
-        <button class="category-btn" data-category="PIGER_LANGBANE">Piger Langbane</button>
+  <div class="button-container">
+    <button class="category-btn" data-category="DRENGE_KORTBANE">Drenge Kortbane</button>
+    <button class="category-btn" data-category="DRENGE_LANGBANE">Drenge Langbane</button>
+    <button class="category-btn" data-category="PIGER_KORTBANE">Piger Kortbane</button>
+    <button class="category-btn" data-category="PIGER_LANGBANE">Piger Langbane</button>
+  </div>
+
+  <div class="container">
+    <div class="loading">
+      <div class="shark-spinner">🦈</div>
+      <p>Indlæser data...</p>
     </div>
+    <table id="records"></table>
+  </div>
 
-    <div class="container">
-        <p class="loading">Indlæser data...</p>
-        <table id="records"></table>
-    </div>
+  <script>
+    const sheetUrls = {
+      "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
+      "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
+      "PIGER_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=665145950&output=csv",
+      "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv"
+    };
 
-    <script>
-        const sheetUrls = {
-            "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
-            "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
-            "PIGER_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=665145950&output=csv",
-            "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv",
-        };
+    async function cargarDatos(sheet) {
+      document.querySelector(".loading").style.display = "flex";
+      document.getElementById("records").innerHTML = "";
 
-        async function cargarDatos(sheet) {
-            document.querySelector(".loading").style.display = "block";
-            document.getElementById("records").innerHTML = "";
+      const url = sheetUrls[sheet];
+      const response = await fetch(url);
+      const data = await response.text();
 
-            const url = sheetUrls[sheet];
-            const response = await fetch(url);
-            const data = await response.text();
-            
-            let rows = data.split("\n").map(row => row.split(","));
-            rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
+      let rows = data.split("\n").map(row => row.split(","));
+      rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
 
-            let table = "<thead><tr>";
-            rows[1].forEach(col => {
-                let colName = col.trim();
-                let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
-                let className = isTest ? "test-cell" : "";
-                table += `<th class="${className}">${colName}</th>`;
-            });
-            table += "</tr></thead><tbody>";
+      let table = "<thead><tr>";
+      rows[1].forEach(col => {
+        let colName = col.trim();
+        let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
+        let className = isTest ? "test-cell" : "";
+        table += `<th class="${className}">${colName}</th>`;
+      });
+      table += "</tr></thead><tbody>";
 
-            for (let i = 2; i < rows.length; i++) {  
-                let rowData = rows[i].map(cell => cell.trim());
-                let isKR = rowData.some(cell => cell === "KR");
-                let rowClass = isKR ? "kr-row" : "";
+      for (let i = 2; i < rows.length; i++) {
+        let rowData = rows[i].map(cell => cell.trim());
+        let isKR = rowData.some(cell => cell === "KR");
+        let rowClass = isKR ? "kr-row" : "";
 
-                let rowHTML = `<tr class="${rowClass}">`;
-                rowData.forEach(cell => {
-                    let cleanCell = cell.replace(/"/g, "");
-                    let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
-                    let cellClass = isTestCell ? "test-cell" : "";
-                    rowHTML += `<td class="${cellClass}">${cleanCell}</td>`;
-                });
-                rowHTML += "</tr>";
-                table += rowHTML;
-            }
-
-            table += "</tbody>";
-            document.getElementById("records").innerHTML = table;
-            document.querySelector(".loading").style.display = "none"; 
-        }
-
-        // Botones de categoría
-        const buttons = document.querySelectorAll(".category-btn");
-        buttons.forEach(button => {
-            button.addEventListener("click", function() {
-                buttons.forEach(btn => btn.classList.remove("active"));
-                this.classList.add("active");
-                const category = this.dataset.category;
-                cargarDatos(category);
-            });
+        let rowHTML = `<tr class="${rowClass}">`;
+        rowData.forEach(cell => {
+          let cleanCell = cell.replace(/"/g, "");
+          let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
+          let cellClass = isTestCell ? "test-cell" : "";
+          rowHTML += `<td class="${cellClass}">${cleanCell}</td>`;
         });
+        rowHTML += "</tr>";
+        table += rowHTML;
+      }
 
-        // Cargar una por defecto
-        window.onload = function() {
-            document.querySelector(".category-btn[data-category='DRENGE_KORTBANE']").classList.add("active");
-            cargarDatos("DRENGE_KORTBANE");
-        };
-    </script>
+      table += "</tbody>";
+      document.getElementById("records").innerHTML = table;
+      document.querySelector(".loading").style.display = "none";
+    }
 
+    const buttons = document.querySelectorAll(".category-btn");
+    buttons.forEach(button => {
+      button.addEventListener("click", function() {
+        buttons.forEach(btn => btn.classList.remove("active"));
+        this.classList.add("active");
+        const category = this.dataset.category;
+        cargarDatos(category);
+      });
+    });
+
+    window.onload = function() {
+      document.querySelector(".category-btn[data-category='DRENGE_KORTBANE']").classList.add("active");
+      cargarDatos("DRENGE_KORTBANE");
+    };
+  </script>
 </body>
 </html>
