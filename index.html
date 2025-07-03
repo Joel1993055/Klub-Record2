@@ -156,6 +156,8 @@
       });
       table += "</tr></thead><tbody>";
 
+      const tiempoIndex = 2; // Ajusta si tu columna de tiempo tiene otro índice
+
       for (let i = 2; i < rows.length; i++) {
         let rowData = rows[i].map(cell => cell.trim());
         let isKR = rowData.some(cell => cell === "KR");
@@ -178,7 +180,10 @@
 
           if (highlightIndices.includes(idx)) {
             cellClass += " year-highlight";
-            cellContent = "🆕 " + cleanCell;
+            // Si es la columna de tiempo, añadimos el emoji
+            if (idx === tiempoIndex) {
+              cellContent = "🆕 " + cleanCell;
+            }
           }
 
           rowHTML += `<td class="${cellClass.trim()}">${cellContent}</td>`;
