@@ -23,16 +23,28 @@
             font-size: 32px;
             margin-bottom: 10px;
         }
-        .selector-container {
-            margin: 10px auto 20px;
+        .button-container {
+            margin: 20px auto;
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            align-items: center;
             gap: 10px;
         }
-        select {
-            padding: 10px;
-            font-size: 16px;
+        button.category-btn {
+            padding: 10px 16px;
+            font-size: 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #d60000;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button.category-btn:hover {
+            background-color: #a50000;
+        }
+        button.category-btn.active {
+            background-color: #333;
         }
         .container {
             width: 95%;
@@ -48,30 +60,23 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            table-layout: auto;
         }
         th, td {
             padding: 12px;
             border: 1px solid #000;
             text-align: center;
             font-size: 14px;
-            vertical-align: middle;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         .test-cell {
-            background-color: #ffcccc !important; /* Rojo claro para pruebas */
+            background-color: #ffcccc !important;
             color: black;
             font-weight: bold;
         }
         .kr-row {
             font-weight: bold;
-        }
-        .event-separator {
-            height: 8px;
-            background-color: transparent;
-            border-bottom: 2px solid #d60000;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -87,15 +92,11 @@
 
     <h1>Klubrekorder</h1>
 
-    <!-- SELECTOR DE CATEGORÍA MOVIDO AQUÍ -->
-    <div class="selector-container">
-        <label for="sheetSelector">Vælg en kategori:</label>
-        <select id="sheetSelector">
-            <option value="DRENGE_KORTBANE">Drenge Kortbane</option>
-            <option value="DRENGE_LANGBANE">Drenge Langbane</option>
-            <option value="PIGER_KORTBANE">Piger Kortbane</option>
-            <option value="PIGER_LANGBANE">Piger Langbane</option>
-        </select>
+    <div class="button-container">
+        <button class="category-btn" data-category="DRENGE_KORTBANE">Drenge Kortbane</button>
+        <button class="category-btn" data-category="DRENGE_LANGBANE">Drenge Langbane</button>
+        <button class="category-btn" data-category="PIGER_KORTBANE">Piger Kortbane</button>
+        <button class="category-btn" data-category="PIGER_LANGBANE">Piger Langbane</button>
     </div>
 
     <div class="container">
@@ -108,7 +109,7 @@
             "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
             "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
             "PIGER_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=665145950&output=csv",
-            "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv"
+            "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv",
         };
 
         async function cargarDatos(sheet) {
@@ -133,7 +134,6 @@
 
             for (let i = 2; i < rows.length; i++) {  
                 let rowData = rows[i].map(cell => cell.trim());
-                
                 let isKR = rowData.some(cell => cell === "KR");
                 let rowClass = isKR ? "kr-row" : "";
 
@@ -153,11 +153,20 @@
             document.querySelector(".loading").style.display = "none"; 
         }
 
-        document.getElementById("sheetSelector").addEventListener("change", function() {
-            cargarDatos(this.value);
+        // Botones de categoría
+        const buttons = document.querySelectorAll(".category-btn");
+        buttons.forEach(button => {
+            button.addEventListener("click", function() {
+                buttons.forEach(btn => btn.classList.remove("active"));
+                this.classList.add("active");
+                const category = this.dataset.category;
+                cargarDatos(category);
+            });
         });
 
+        // Cargar una por defecto
         window.onload = function() {
+            document.querySelector(".category-btn[data-category='DRENGE_KORTBANE']").classList.add("active");
             cargarDatos("DRENGE_KORTBANE");
         };
     </script>
