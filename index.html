@@ -2,123 +2,106 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Klubrekorder</title>
   <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen flex flex-col items-center p-6 font-sans">
-
-  <!-- Header -->
-  <header class="text-center mb-8">
-    <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" 
-         alt="Klub Logo" 
-         class="mx-auto w-40 mb-4 drop-shadow-md" />
-    <h1 class="text-4xl font-extrabold text-red-600 tracking-tight">Klubrekorder</h1>
-    <p class="text-gray-600 mt-2">Opdaterede resultater for alle discipliner</p>
-  </header>
-
-  <!-- Category Tabs -->
-  <div class="flex flex-wrap justify-center gap-3 mb-6">
-    <button class="category-btn px-5 py-2 text-sm md:text-base rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 transition font-medium"
-            data-category="DRENGE_KORTBANE">Drenge Kortbane</button>
-    <button class="category-btn px-5 py-2 text-sm md:text-base rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 transition font-medium"
-            data-category="DRENGE_LANGBANE">Drenge Langbane</button>
-    <button class="category-btn px-5 py-2 text-sm md:text-base rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 transition font-medium"
-            data-category="PIGER_KORTBANE">Piger Kortbane</button>
-    <button class="category-btn px-5 py-2 text-sm md:text-base rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 transition font-medium"
-            data-category="PIGER_LANGBANE">Piger Langbane</button>
-  </div>
-
-  <!-- Table Container -->
-  <div class="w-full max-w-6xl bg-white rounded-xl shadow-md p-6 overflow-x-auto">
-    <div class="loading hidden flex-col items-center gap-2 my-6">
-      <div class="animate-spin text-5xl">🦈</div>
-      <p class="text-gray-700 font-semibold">Indlæser data...</p>
-    </div>
-    <table id="records" class="w-full border-collapse text-sm md:text-base"></table>
-  </div>
-
   <script>
-    const sheetUrls = {
-      "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
-      "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
-      "PIGER_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=665145950&output=csv",
-      "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv"
-    };
-
-    async function cargarDatos(sheet) {
-      document.querySelector(".loading").classList.remove("hidden");
-      document.getElementById("records").innerHTML = "";
-
-      const url = sheetUrls[sheet];
-      const response = await fetch(url);
-      const data = await response.text();
-
-      let rows = data.split("\n").map(row => row.split(","));
-      rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
-
-      let table = "<thead><tr class='bg-gray-100 text-gray-800'>";
-      rows[1].forEach(col => {
-        let colName = col.trim();
-        let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
-        let className = isTest ? "bg-red-100 font-bold" : "";
-        table += `<th class='px-3 py-2 border text-sm md:text-base ${className}'>${colName}</th>`;
-      });
-      table += "</tr></thead><tbody>";
-
-      const tiempoIndex = 2;
-
-      for (let i = 2; i < rows.length; i++) {
-        let rowData = rows[i].map(cell => cell.trim());
-        let isKR = rowData.some(cell => cell === "KR");
-        let rowClass = isKR ? "font-bold bg-yellow-50" : "";
-
-        const highlightIndices = [];
-        rowData.forEach((cell, idx) => {
-          if (cell.includes("2025")) {
-            highlightIndices.push(idx, idx - 1, idx - 2);
-          }
-        });
-
-        let rowHTML = `<tr class='hover:bg-gray-50 ${rowClass}'>`;
-        rowData.forEach((cell, idx) => {
-          let cleanCell = cell.replace(/"/g, "");
-          let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
-          let cellClass = isTestCell ? "bg-red-50 font-semibold" : "";
-
-          let cellContent = cleanCell;
-          if (highlightIndices.includes(idx)) {
-            cellClass += " bg-yellow-100";
-            if (idx === tiempoIndex) {
-              cellContent = "🆕 " + cleanCell;
-            }
-          }
-
-          rowHTML += `<td class='px-3 py-2 border ${cellClass}'>${cellContent}</td>`;
-        });
-        rowHTML += "</tr>";
-        table += rowHTML;
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: { klubred: '#d60000' }
+        }
       }
-
-      table += "</tbody>";
-      document.getElementById("records").innerHTML = table;
-      document.querySelector(".loading").classList.add("hidden");
-    }
-
-    const buttons = document.querySelectorAll(".category-btn");
-    buttons.forEach(button => {
-      button.addEventListener("click", function() {
-        buttons.forEach(btn => btn.classList.remove("bg-gray-800"));
-        this.classList.add("bg-gray-800");
-        const category = this.dataset.category;
-        cargarDatos(category);
-      });
-    });
-
-    window.onload = function() {
-      document.querySelector(".category-btn[data-category='DRENGE_KORTBANE']").classList.add("bg-gray-800");
-      cargarDatos("DRENGE_KORTBANE");
     };
   </script>
-</body>
-</html>
+  <style>
+    /* Sticky primera columna corrigiendo superposición */
+    .sticky-col { position: sticky; left: 0; z-index: 15; }
+    thead th.sticky-col { z-index: 20; }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="max-w-7xl mx-auto px-4 md:px-6 py-6 text-center">
+    <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png"
+         alt="Søllerød Svømmeklub" class="mx-auto w-36 md:w-44 mb-3 drop-shadow" />
+    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-klubred">Klubrekorder</h1>
+    <p class="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Opdaterede rekorder pr. aldersgruppe og bane</p>
+  </header>
+
+  <!-- Controls -->
+  <section class="max-w-7xl mx-auto px-4 md:px-6 mb-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <!-- Category Tabs -->
+      <div class="flex flex-wrap gap-2" role="tablist" aria-label="Kategorier">
+        <button class="category-btn px-4 py-2 rounded-lg bg-klubred text-white hover:bg-red-700 transition"
+                data-category="DRENGE_KORTBANE" role="tab">Drenge Kortbane</button>
+        <button class="category-btn px-4 py-2 rounded-lg bg-klubred text-white hover:bg-red-700 transition"
+                data-category="DRENGE_LANGBANE" role="tab">Drenge Langbane</button>
+        <button class="category-btn px-4 py-2 rounded-lg bg-klubred text-white hover:bg-red-700 transition"
+                data-category="PIGER_KORTBANE" role="tab">Piger Kortbane</button>
+        <button class="category-btn px-4 py-2 rounded-lg bg-klubred text-white hover:bg-red-700 transition"
+                data-category="PIGER_LANGBANE" role="tab">Piger Langbane</button>
+      </div>
+
+      <!-- Theme toggle -->
+      <button id="themeToggle" class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm">
+        🌗 Tema
+      </button>
+    </div>
+  </section>
+
+  <!-- Filter Bar -->
+  <section class="max-w-7xl mx-auto px-4 md:px-6">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-5">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+        <div class="md:col-span-3">
+          <label class="block text-xs font-semibold mb-1">Aldersgruppe</label>
+          <select id="ageFilter" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm">
+            <option value="">Alle</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-3">
+          <label class="block text-xs font-semibold mb-1">Søg (navn)</label>
+          <input id="searchInput" type="text" placeholder="Søg efter navn…" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm">
+        </div>
+
+        <div class="md:col-span-3">
+          <label class="block text-xs font-semibold mb-1">Vis kun</label>
+          <div class="flex gap-3 items-center">
+            <label class="inline-flex items-center gap-2 text-sm">
+              <input id="krOnly" type="checkbox" class="rounded border-gray-300 dark:border-gray-600"> KR
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm">
+              <input id="recentOnly" type="checkbox" class="rounded border-gray-300 dark:border-gray-600"> 2024–2025
+            </label>
+          </div>
+        </div>
+
+        <div class="md:col-span-3 flex md:justify-end gap-2">
+          <button id="resetFilters" class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm">Reset</button>
+        </div>
+      </div>
+
+      <!-- Column Filters -->
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <span class="block text-xs font-semibold mb-1">Distancer</span>
+          <div id="distanceFilters" class="flex flex-wrap gap-2">
+            <!-- Chips autogeneradas si existen en cabeceras -->
+          </div>
+        </div>
+        <div>
+          <span class="block text-xs font-semibold mb-1">Stilart</span>
+          <div id="strokeFilters" class="flex flex-wrap gap-2">
+            <!-- Chips autogeneradas si existen en cabeceras -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
+        <span class="inline-flex items-center gap-2"><span class="inline-block w-4 h-4 bg-red-100 dark:bg-red-900/40 rounded"></span> Kolonner med øvelser</span>
