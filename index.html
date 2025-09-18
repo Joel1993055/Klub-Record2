@@ -6,35 +6,36 @@
   <title>Klubrekorder</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-center p-6 font-sans">
+<body class="bg-gray-50 min-h-screen flex flex-col items-center p-6 font-sans">
 
-  <!-- Logo -->
-  <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" 
-       alt="Klub Logo" 
-       class="mx-auto w-40 mb-4" />
+  <!-- Header -->
+  <header class="text-center mb-8">
+    <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" 
+         alt="Klub Logo" 
+         class="mx-auto w-40 mb-4 drop-shadow-md" />
+    <h1 class="text-4xl font-extrabold text-red-600 tracking-tight">Klubrekorder</h1>
+    <p class="text-gray-600 mt-2">Opdaterede resultater for alle discipliner</p>
+  </header>
 
-  <!-- Title -->
-  <h1 class="text-3xl md:text-4xl font-bold text-red-600 mb-6">Klubrekorder</h1>
-
-  <!-- Category Buttons -->
+  <!-- Category Tabs -->
   <div class="flex flex-wrap justify-center gap-3 mb-6">
-    <button class="category-btn px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition"
+    <button class="category-btn px-5 py-2 text-sm md:text-base rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 transition font-medium"
             data-category="DRENGE_KORTBANE">Drenge Kortbane</button>
-    <button class="category-btn px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition"
+    <button class="category-btn px-5 py-2 text-sm md:text-base rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 transition font-medium"
             data-category="DRENGE_LANGBANE">Drenge Langbane</button>
-    <button class="category-btn px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition"
+    <button class="category-btn px-5 py-2 text-sm md:text-base rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 transition font-medium"
             data-category="PIGER_KORTBANE">Piger Kortbane</button>
-    <button class="category-btn px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition"
+    <button class="category-btn px-5 py-2 text-sm md:text-base rounded-lg bg-red-600 text-white shadow-sm hover:bg-red-700 transition font-medium"
             data-category="PIGER_LANGBANE">Piger Langbane</button>
   </div>
 
   <!-- Table Container -->
-  <div class="container mx-auto max-w-6xl bg-white rounded-lg shadow-md p-4 overflow-x-auto">
-    <div class="loading hidden flex-col items-center gap-2 my-4">
+  <div class="w-full max-w-6xl bg-white rounded-xl shadow-md p-6 overflow-x-auto">
+    <div class="loading hidden flex-col items-center gap-2 my-6">
       <div class="animate-spin text-5xl">🦈</div>
-      <p class="text-gray-700 font-medium">Indlæser data...</p>
+      <p class="text-gray-700 font-semibold">Indlæser data...</p>
     </div>
-    <table id="records" class="w-full border-collapse text-sm"></table>
+    <table id="records" class="w-full border-collapse text-sm md:text-base"></table>
   </div>
 
   <script>
@@ -56,12 +57,12 @@
       let rows = data.split("\n").map(row => row.split(","));
       rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
 
-      let table = "<thead><tr class='bg-gray-200'>";
+      let table = "<thead><tr class='bg-gray-100 text-gray-800'>";
       rows[1].forEach(col => {
         let colName = col.trim();
         let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
         let className = isTest ? "bg-red-100 font-bold" : "";
-        table += `<th class='px-3 py-2 border ${className}'>${colName}</th>`;
+        table += `<th class='px-3 py-2 border text-sm md:text-base ${className}'>${colName}</th>`;
       });
       table += "</tr></thead><tbody>";
 
@@ -79,15 +80,15 @@
           }
         });
 
-        let rowHTML = `<tr class='hover:bg-gray-100 ${rowClass}'>`;
+        let rowHTML = `<tr class='hover:bg-gray-50 ${rowClass}'>`;
         rowData.forEach((cell, idx) => {
           let cleanCell = cell.replace(/"/g, "");
           let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
-          let cellClass = isTestCell ? "bg-red-100 font-semibold" : "";
+          let cellClass = isTestCell ? "bg-red-50 font-semibold" : "";
 
           let cellContent = cleanCell;
           if (highlightIndices.includes(idx)) {
-            cellClass += " bg-yellow-200";
+            cellClass += " bg-yellow-100";
             if (idx === tiempoIndex) {
               cellContent = "🆕 " + cleanCell;
             }
