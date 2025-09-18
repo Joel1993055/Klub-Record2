@@ -1,107 +1,217 @@
+
 <!DOCTYPE html>
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Klubrekorder</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: { klubred: '#d60000' }
-        }
-      }
-    };
-  </script>
   <style>
-    /* Sticky primera columna corrigiendo superposición */
-    .sticky-col { position: sticky; left: 0; z-index: 15; }
-    thead th.sticky-col { z-index: 20; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .logo {
+      display: block;
+      margin: 0 auto;
+      width: 150px;
+      height: auto;
+      padding-bottom: 10px;
+    }
+    h1 {
+      color: #d60000;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .button-container {
+      margin: 20px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    button.category-btn {
+      padding: 10px 16px;
+      font-size: 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #d60000;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button.category-btn:hover {
+      background-color: #a50000;
+    }
+    button.category-btn.active {
+      background-color: #333;
+    }
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #000;
+      text-align: center;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .test-cell {
+      background-color: #ffcccc !important;
+      color: black;
+      font-weight: bold;
+    }
+    .kr-row {
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    .loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .shark-spinner {
+      font-size: 50px;
+      display: inline-block;
+      animation: spinShark 1s linear infinite;
+    }
+    @keyframes spinShark {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .year-highlight {
+      background-color: #fff5b1; /* amarillo suave */
+      font-weight: bold;
+    }
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+<body>
 
-  <!-- Header -->
-  <header class="max-w-7xl mx-auto px-4 md:px-6 py-6 text-center">
-    <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png"
-         alt="Søllerød Svømmeklub" class="mx-auto w-36 md:w-44 mb-3 drop-shadow" />
-    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-klubred">Klubrekorder</h1>
-    <p class="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Opdaterede rekorder pr. aldersgruppe og bane</p>
-  </header>
+  <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klub Logo" class="logo" />
 
-  <!-- Controls -->
-  <section class="max-w-7xl mx-auto px-4 md:px-6 mb-4">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <!-- Category Tabs -->
-      <div class="flex flex-wrap gap-2" role="tablist" aria-label="Kategorier">
-        <button class="category-btn px-4 py-2 rounded-lg bg-klubred text-white hover:bg-red-700 transition"
-                data-category="DRENGE_KORTBANE" role="tab">Drenge Kortbane</button>
-        <button class="category-btn px-4 py-2 rounded-lg bg-klubred text-white hover:bg-red-700 transition"
-                data-category="DRENGE_LANGBANE" role="tab">Drenge Langbane</button>
-        <button class="category-btn px-4 py-2 rounded-lg bg-klubred text-white hover:bg-red-700 transition"
-                data-category="PIGER_KORTBANE" role="tab">Piger Kortbane</button>
-        <button class="category-btn px-4 py-2 rounded-lg bg-klubred text-white hover:bg-red-700 transition"
-                data-category="PIGER_LANGBANE" role="tab">Piger Langbane</button>
-      </div>
+  <h1>Klubrekorder</h1>
 
-      <!-- Theme toggle -->
-      <button id="themeToggle" class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm">
-        🌗 Tema
-      </button>
+  <div class="button-container">
+    <button class="category-btn" data-category="DRENGE_KORTBANE">Drenge Kortbane</button>
+    <button class="category-btn" data-category="DRENGE_LANGBANE">Drenge Langbane</button>
+    <button class="category-btn" data-category="PIGER_KORTBANE">Piger Kortbane</button>
+    <button class="category-btn" data-category="PIGER_LANGBANE">Piger Langbane</button>
+  </div>
+
+  <div class="container">
+    <div class="loading">
+      <div class="shark-spinner">🦈</div>
+      <p>Indlæser data...</p>
     </div>
-  </section>
+    <table id="records"></table>
+  </div>
 
-  <!-- Filter Bar -->
-  <section class="max-w-7xl mx-auto px-4 md:px-6">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-5">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-        <div class="md:col-span-3">
-          <label class="block text-xs font-semibold mb-1">Aldersgruppe</label>
-          <select id="ageFilter" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm">
-            <option value="">Alle</option>
-          </select>
-        </div>
+  <script>
+    const sheetUrls = {
+      "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
+      "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
+      "PIGER_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=665145950&output=csv",
+      "PIGER_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1263870070&output=csv"
+    };
 
-        <div class="md:col-span-3">
-          <label class="block text-xs font-semibold mb-1">Søg (navn)</label>
-          <input id="searchInput" type="text" placeholder="Søg efter navn…" class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm">
-        </div>
+    async function cargarDatos(sheet) {
+      document.querySelector(".loading").style.display = "flex";
+      document.getElementById("records").innerHTML = "";
 
-        <div class="md:col-span-3">
-          <label class="block text-xs font-semibold mb-1">Vis kun</label>
-          <div class="flex gap-3 items-center">
-            <label class="inline-flex items-center gap-2 text-sm">
-              <input id="krOnly" type="checkbox" class="rounded border-gray-300 dark:border-gray-600"> KR
-            </label>
-            <label class="inline-flex items-center gap-2 text-sm">
-              <input id="recentOnly" type="checkbox" class="rounded border-gray-300 dark:border-gray-600"> 2024–2025
-            </label>
-          </div>
-        </div>
+      const url = sheetUrls[sheet];
+      const response = await fetch(url);
+      const data = await response.text();
 
-        <div class="md:col-span-3 flex md:justify-end gap-2">
-          <button id="resetFilters" class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm">Reset</button>
-        </div>
-      </div>
+      let rows = data.split("\n").map(row => row.split(","));
+      rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
 
-      <!-- Column Filters -->
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <span class="block text-xs font-semibold mb-1">Distancer</span>
-          <div id="distanceFilters" class="flex flex-wrap gap-2">
-            <!-- Chips autogeneradas si existen en cabeceras -->
-          </div>
-        </div>
-        <div>
-          <span class="block text-xs font-semibold mb-1">Stilart</span>
-          <div id="strokeFilters" class="flex flex-wrap gap-2">
-            <!-- Chips autogeneradas si existen en cabeceras -->
-          </div>
-        </div>
-      </div>
+      let table = "<thead><tr>";
+      rows[1].forEach(col => {
+        let colName = col.trim();
+        let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
+        let className = isTest ? "test-cell" : "";
+        table += `<th class="${className}">${colName}</th>`;
+      });
+      table += "</tr></thead><tbody>";
 
-      <!-- Legend -->
-      <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
-        <span class="inline-flex items-center gap-2"><span class="inline-block w-4 h-4 bg-red-100 dark:bg-red-900/40 rounded"></span> Kolonner med øvelser</span>
+      const tiempoIndex = 2; // Ajusta si tu columna de tiempo tiene otro índice
+
+      for (let i = 2; i < rows.length; i++) {
+        let rowData = rows[i].map(cell => cell.trim());
+        let isKR = rowData.some(cell => cell === "KR");
+        let rowClass = isKR ? "kr-row" : "";
+
+        const highlightIndices = [];
+        rowData.forEach((cell, idx) => {
+          if (cell.includes("2025")) {
+            highlightIndices.push(idx, idx - 1, idx - 2);
+          }
+        });
+
+        let rowHTML = `<tr class="${rowClass}">`;
+        rowData.forEach((cell, idx) => {
+          let cleanCell = cell.replace(/"/g, "");
+          let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
+          let cellClass = isTestCell ? "test-cell" : "";
+
+          let cellContent = cleanCell;
+
+          if (highlightIndices.includes(idx)) {
+            cellClass += " year-highlight";
+            // Si es la columna de tiempo, añadimos el emoji
+            if (idx === tiempoIndex) {
+              cellContent = "🆕 " + cleanCell;
+            }
+          }
+
+          rowHTML += `<td class="${cellClass.trim()}">${cellContent}</td>`;
+        });
+        rowHTML += "</tr>";
+        table += rowHTML;
+      }
+
+      table += "</tbody>";
+      document.getElementById("records").innerHTML = table;
+      document.querySelector(".loading").style.display = "none";
+    }
+
+    const buttons = document.querySelectorAll(".category-btn");
+    buttons.forEach(button => {
+      button.addEventListener("click", function() {
+        buttons.forEach(btn => btn.classList.remove("active"));
+        this.classList.add("active");
+        const category = this.dataset.category;
+        cargarDatos(category);
+      });
+    });
+
+    window.onload = function() {
+      document.querySelector(".category-btn[data-category='DRENGE_KORTBANE']").classList.add("active");
+      cargarDatos("DRENGE_KORTBANE");
+    };
+  </script>
+</body>
+</html>
