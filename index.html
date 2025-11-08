@@ -117,15 +117,14 @@
     /*** STATE ***/
     let currentCategory = "DRENGE_KORTBANE";
     let fullRows = [];
-    let header = [];
     let filteredRows = [];
     let sortState = { index: null, dir: 1 };
+    const currentYear = new Date().getFullYear();
+    document.getElementById("year-tag").textContent = currentYear;
 
     /*** UTILS ***/
     const $ = (sel, el=document) => el.querySelector(sel);
     const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-    const currentYear = new Date().getFullYear();
-    $("#year-tag").textContent = currentYear;
 
     function showLoading(show){
       const ld = $(".loading");
@@ -138,12 +137,8 @@
       s.classList.toggle("error", !!isError);
     }
     function debounce(fn, ms=200){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
-    function isNumeric(x){
-      if (x == null) return false;
-      const v = String(x).replace(",", ".").trim();
-      return v !== "" && !isNaN(v) && isFinite(+v);
-    }
-    // Parse times like h:mm:ss.cc, m:ss.cc, ss.cc
+
+    // Parse h:mm:ss.cc, m:ss.cc, ss.cc
     function timeToSeconds(txt){
       if (!txt) return NaN;
       const s = String(txt).trim();
@@ -165,7 +160,6 @@
       const tb = (String(b).includes(":")) ? timeToSeconds(b) : NaN;
       const bothTime = !isNaN(ta) && !isNaN(tb);
       if (bothTime) return ta - tb;
-      if (isNumeric(a) && isNumeric(b)) return parseFloat(String(a).replace(",", ".")) - parseFloat(String(b).replace(",", "."));
       return String(a).localeCompare(String(b), undefined, { numeric:true, sensitivity:"base" });
     }
     function parseCSV(text){ return Papa.parse(text, { skipEmptyLines: true }).data; }
@@ -174,32 +168,17 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.text();
     }
-    function updateURL(){
-      const url = new URL(location.href);
-      url.searchParams.set("cat", currentCategory);
-      history.replaceState({}, "", url);
-    }
-    function applySearchFilter(term){
-      if (!term) { filteredRows = fullRows.slice(2); return; }
-      const q = term.toLowerCase();
-      filteredRows = fullRows.slice(2).filter(r => r.some(c => String(c||"").toLowerCase().includes(q)));
-    }
-    function applySort(){
-      if (sortState.index == null) return;
-      const idx = sortState.index;
-      const dir = sortState.dir;
-      filteredRows.sort((ra, rb) => dir * cmpSmart(ra[idx]||"", rb[idx]||""));
-    }
 
+    /*** RENDER ***/
     function renderTable(){
       const table = $("#records");
       if (!fullRows.length){
         table.innerHTML = "<thead></thead><tbody><tr><td>Ingen data.</td></tr></tbody>";
         return;
       }
-      header = (fullRows[1] || []).map(x => String(x||"").replace(/"/g,""));
+      const header = (fullRows[1] || []).map(x => String(x||"").replace(/"/g,""));
 
-      // THEAD with sort indicators
+      // thead
       let thead = "<thead><tr>";
       header.forEach((col, i) => {
         const isTest = TEST_REGEX.test(col);
@@ -210,7 +189,7 @@
       });
       thead += "</tr></thead>";
 
-      // TBODY with year highlights and 🆕 two cells to the left of year
+      // tbody
       const yearRegex = new RegExp(`\\b${currentYear}\\b`);
       let tbody = "<tbody>";
       filteredRows.forEach((row) => {
@@ -241,7 +220,7 @@
 
       table.innerHTML = thead + tbody;
 
-      // Column sort handlers
+      // sort handlers
       $$("#records thead th").forEach(th=>{
         th.addEventListener("click", () => {
           const col = +th.dataset.col;
@@ -251,16 +230,16 @@
             sortState.index = col;
             sortState.dir = 1;
           }
-          applySort();
+          filteredRows.sort((a,b)=> sortState.dir * cmpSmart(a[col]||"", b[col]||""));
           renderTable();
         });
       });
     }
 
+    /*** LOAD ***/
     async function loadCategory(cat){
       try{
         currentCategory = cat;
-        updateURL();
         setActiveButton(cat);
         setStatus("");
         showLoading(true);
@@ -275,7 +254,6 @@
         }
         filteredRows = fullRows.slice(2);
         sortState = { index: null, dir: 1 };
-        applySort();
         renderTable();
         showLoading(false);
       } catch(err){
@@ -293,29 +271,7 @@
       });
     }
 
-    /*** YEAR SUMMARY (relative positions) ***/
-    function parseRowLabelForAge(label){
-      // Detect 10..18 or 'KR' on the row label
-      const s = String(label||"").toUpperCase();
-      const m = s.match(/\b(10|11|12|13|14|15|16|17|18)\b/);
-      if (m) return parseInt(m[1], 10);
-      if (/\bKR\b/.test(s) || /\bSENIOR\b/.test(s)) return "KR";
-      return null;
-    }
-    function findRowLabel(row){
-      // Use the first non-empty text from the first few columns as row label
-      for (let j=0; j<Math.min(3,row.length); j++){
-        const t = String(row[j]||"").trim();
-        if (t) return t;
-      }
-      return "";
-    }
-    function ageToOffset(age){
-      // 10→1, 11→2, … 18→9, KR→9
-      if (age === "KR") return 9;
-      if (typeof age === "number") return Math.max(1, age - 9);
-      return null;
-    }
+    /*** SUMMARY HELPERS ***/
     function safeCell(rows, r, c){
       if (r < 0 || c < 0) return "";
       if (r >= rows.length) return "";
@@ -323,17 +279,35 @@
       if (!row || c >= row.length) return "";
       return String(row[c] || "").trim();
     }
+    function findRowLabel(row){
+      for (let j=0; j<Math.min(3,row.length); j++){
+        const t = String(row[j]||"").trim();
+        if (t) return t;
+      }
+      return "";
+    }
+    function parseRowLabelForAge(label){
+      const s = String(label||"").toUpperCase();
+      const m = s.match(/\b(10|11|12|13|14|15|16|17|18)\b/);
+      if (m) return parseInt(m[1], 10);
+      if (/\bKR\b/.test(s) || /\bSENIOR\b/.test(s)) return "KR";
+      return null;
+    }
+    function ageToOffset(age){
+      if (age === "KR") return 9;
+      if (typeof age === "number") return Math.max(1, age - 9);
+      return null;
+    }
 
     function collectYearEntriesFromMatrix(rows, categoryLabel, year){
       const entries = [];
       const yearRe = new RegExp(`\\b${year}\\b`);
-      const seen = new Set(); // deduplicate
+      const seen = new Set();
 
       for (let ri=0; ri<rows.length; ri++){
         const row = rows[ri];
         if (!row) continue;
 
-        // Determine offset for Løb (event) from row label (10..18/KR)
         const rowLabel = findRowLabel(row);
         const ageParsedForOffset = parseRowLabelForAge(rowLabel);
         const offset = ageToOffset(ageParsedForOffset);
@@ -342,22 +316,20 @@
           const cell = String(row[ci]||"").trim();
           if (!yearRe.test(cell)) continue;
 
-          // Values relative to YEAR cell (same row)
-          const time  = safeCell(rows, ri, ci - 1); // one left
-          const name  = safeCell(rows, ri, ci - 2); // two left
-          const age   = safeCell(rows, ri, ci - 3); // three left
+          // Relative to the year cell
+          const time  = safeCell(rows, ri, ci - 1);
+          const name  = safeCell(rows, ri, ci - 2);
+          const age   = safeCell(rows, ri, 1);        // ALWAYS from column B
 
-          // Event (Løb): above with offset, same column as the name (ci - 2)
+          // Event (løb)
           let event = "";
           if (offset != null){
             event = safeCell(rows, ri - offset, ci - 2);
           }
-          // Fallback to header in the same column if empty
           if (!event) {
             event = safeCell(rows, 1, ci - 2) || safeCell(rows, 0, ci - 2);
           }
 
-          // Require at least Tid and (Navn or Løb)
           const hasCore = time && (name || event);
           if (!hasCore) continue;
 
@@ -386,11 +358,7 @@
 
     function openSummaryPage(entries){
       const total = entries.length;
-      entries.sort((a,b)=>{
-        const ev = String(a["Løb"]||"").localeCompare(String(b["Løb"]||""), undefined, {numeric:true,sensitivity:"base"});
-        if (ev!==0) return ev;
-        return cmpSmart(a["Tid"]||"", b["Tid"]||"");
-      });
+      entries.sort((a,b)=> (String(a["Løb"]||"").localeCompare(String(b["Løb"]||""), undefined, {numeric:true,sensitivity:"base"})) || cmpSmart(a["Tid"]||"", b["Tid"]||""));
       const htmlRows = entries.map(e => `
         <tr>
           <td>${e["Navn"]||""}</td>
@@ -399,7 +367,7 @@
           <td>${e["Tid"]||""}</td>
           <td>${e["Kategori"]||""}</td>
         </tr>
-      `).join("");  <!-- FIXED: backtick closes correctly and then .join("") -->
+      `).join("");
 
       const w = window.open("", "_blank");
       const doc = w.document;
@@ -425,7 +393,7 @@
 <body>
   <div class="wrap">
     <h1>Årsresumé ${currentYear} <span class="badge">${total}</span></h1>
-    <p class="muted">Tid = 1 celle til venstre; Navn = 2 til venstre; Alder = 3 til venstre; Løb = ovenfor afhængigt af årgang/KR.</p>
+    <p class="muted">Tid = 1 celle til venstre; Navn = 2 til venstre; Alder = kolonne B; Løb = ovenfor afhængigt af årgang/KR.</p>
     <div style="overflow:auto">
       <table>
         <thead><tr>
@@ -444,7 +412,7 @@
       try{
         showLoading(true);
         setStatus("Genererer årsresumé…");
-        const datasets = await fetchAllCategories(); // [{cat, rows}]
+        const datasets = await fetchAllCategories();
         let all = [];
         for (const ds of datasets){
           const label = ds.cat.replaceAll("_"," ");
@@ -460,17 +428,16 @@
         showLoading(false);
       }
     }
-    /*** END YEAR SUMMARY ***/
 
-    // Live search
-    $("#search").addEventListener("input", debounce((e)=>{
-      const term = e.target.value || "";
-      applySearchFilter(term);
-      applySort();
+    /*** UI EVENTS ***/
+    document.getElementById("btn-summary").addEventListener("click", buildYearSummary);
+
+    document.getElementById("search").addEventListener("input", debounce((e)=>{
+      const term = (e.target.value || "").toLowerCase();
+      filteredRows = fullRows.slice(2).filter(r => r.some(c => String(c||"").toLowerCase().includes(term)));
       renderTable();
     }, 120));
 
-    // Category buttons
     $$(".category-btn").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const cat = btn.dataset.category;
@@ -478,15 +445,17 @@
       });
     });
 
-    // Year summary button
-    $("#btn-summary").addEventListener("click", buildYearSummary);
-
-    // Init
+    /*** INIT ***/
     (function init(){
       const url = new URL(location.href);
       const qcat = url.searchParams.get("cat");
       const firstCat = (qcat && sheetUrls[qcat]) ? qcat : "DRENGE_KORTBANE";
-      setActiveButton(firstCat);
+      // set active style
+      $$(".category-btn").forEach(b=>{
+        const active = b.dataset.category === firstCat;
+        b.classList.toggle("active", active);
+        b.setAttribute("aria-selected", active ? "true":"false");
+      });
       loadCategory(firstCat);
     })();
   </script>
