@@ -39,7 +39,6 @@
     }
     button.category-btn:hover{ background-color:var(--red-dark); }
     button.category-btn:active{ transform:scale(0.98); }
-    button.category-btn:focus-visible{ outline:3px solid #000; outline-offset:2px; }
     button.category-btn.active{ background:#333; border-color:#000; }
     #btn-summary{ background:#222; }
     #btn-summary:hover{ background:#000; }
@@ -262,7 +261,7 @@
       });
     }
 
-    /*** SUMMARY HELPERS ***/
+    /*** SUMMARY HELPERS (robusto para tus hojas) ***/
     function safeCell(rows, r, c){
       if (r < 0 || c < 0) return "";
       if (r >= rows.length) return "";
@@ -295,9 +294,11 @@
       const entries = [];
       const yearRe = new RegExp(`\\b${year}\\b`);
       const seen = new Set();
+
       for (let ri=0; ri<rows.length; ri++){
         const row = rows[ri];
         if (!row) continue;
+
         const rowLabel = findRowLabel(row);
         const ageParsedForOffset = parseRowLabelForAge(rowLabel);
         const offset = ageToOffset(ageParsedForOffset);
@@ -308,17 +309,31 @@
 
           const time  = safeCell(rows, ri, ci - 1);
           const name  = safeCell(rows, ri, ci - 2);
-          const age   = safeCell(rows, ri, 1); // Columna B
-          let event = "";
-          if (offset != null){ event = safeCell(rows, ri - offset, ci - 2); }
-          if (!event){ event = safeCell(rows, 1, ci - 2) || safeCell(rows, 0, ci - 2); }
+          const age   = safeCell(rows, ri, 1);        // SIEMPRE columna B
 
-          if (!time || !(name || event)) continue;
+          // Evento (løb)
+          let event = "";
+          if (offset != null){
+            event = safeCell(rows, ri - offset, ci - 2);
+          }
+          if (!event) {
+            event = safeCell(rows, 1, ci - 2) || safeCell(rows, 0, ci - 2);
+          }
+
+          const hasCore = time && (name || event);
+          if (!hasCore) continue;
+
           const key = `${categoryLabel}|${name}|${age}|${time}|${event}`;
           if (seen.has(key)) continue;
           seen.add(key);
 
-          entries.push({ "Navn": name, "Alder": age, "Løb": event, "Tid": time, "Kategori": categoryLabel });
+          entries.push({
+            "Navn": name,
+            "Alder": age,
+            "Løb": event,
+            "Tid": time,
+            "Kategori": categoryLabel
+          });
         }
       }
       return entries;
@@ -331,6 +346,7 @@
       return cats.map((cat, i) => ({ cat, rows: parsed[i]||[] }));
     }
 
+    // --- Årsresumé: genera HTML y abre con Blob URL (evita about:blank en blanco) ---
     function openSummaryPage(entries){
       const total = entries.length;
 
@@ -340,6 +356,7 @@
         String(a["Løb"]||"").localeCompare(String(b["Løb"]||""), "da", { numeric:true, sensitivity:"base" }) ||
         cmpSmart(a["Tid"]||"", b["Tid"]||"");
 
+      // Split por género
       const isDrenge = e => String(e["Kategori"]||"").toUpperCase().startsWith("DRENGE");
       const isPiger  = e => String(e["Kategori"]||"").toUpperCase().startsWith("PIGER");
       const drengeEntries = entries.filter(isDrenge).sort(byName);
@@ -368,10 +385,8 @@
         `;
       };
 
-      const w = window.open("", "_blank", "noopener,noreferrer");
-      const doc = w.document;
-      doc.open();
-      doc.write(`<!doctype html>
+      // HTML completo de la página
+      const html = `<!doctype html>
 <html lang="da">
 <head>
 <meta charset="utf-8"/>
@@ -427,8 +442,12 @@
     </div>
   </div>
 </body>
-</html>`);
-      doc.close();
+</html>`;
+
+      // Abrir con Blob URL (evita about:blank vacío en algunos navegadores)
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
     }
 
     async function buildYearSummary(){
