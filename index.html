@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="da">
 <head>
@@ -145,49 +144,63 @@
       const response = await fetch(url);
       const data = await response.text();
 
+      // Nota: split simple por comas; si tu CSV tiene comas entrecomilladas, convendría un parser CSV real.
       let rows = data.split("\n").map(row => row.split(","));
       rows = rows.filter(row => row.some(cell => cell.trim() !== ""));
 
+      // Cabecera (usa la fila 2 como en tu original)
       let table = "<thead><tr>";
       rows[1].forEach(col => {
-        let colName = col.trim();
-        let isTest = colName.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
-        let className = isTest ? "test-cell" : "";
+        const colName = col.trim().replace(/"/g, "");
+        const isTest = /\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/.test(colName);
+        const className = isTest ? "test-cell" : "";
         table += `<th class="${className}">${colName}</th>`;
       });
       table += "</tr></thead><tbody>";
 
-      const tiempoIndex = 2; // Ajusta si tu columna de tiempo tiene otro índice
+      // Año dinámico y regex con límites de palabra
+      const currentYear = new Date().getFullYear();
+      const yearRegex = new RegExp(`\\b${currentYear}\\b`);
 
       for (let i = 2; i < rows.length; i++) {
-        let rowData = rows[i].map(cell => cell.trim());
-        let isKR = rowData.some(cell => cell === "KR");
-        let rowClass = isKR ? "kr-row" : "";
+        const rowData = rows[i].map(cell => cell.trim());
+        const isKR = rowData.some(cell => cell === "KR");
+        const rowClass = isKR ? "kr-row" : "";
 
-        const highlightIndices = [];
+        // 1) ÍNDICES A RESALTAR: celda del año y dos a la izquierda (si existen)
+        const highlightIndices = new Set();
+        // 2) ÍNDICES PARA EMOJI: exactamente dos a la izquierda de la celda con el año (si existe)
+        const emojiIndices = new Set();
+
         rowData.forEach((cell, idx) => {
-          if (cell.includes("2025")) {
-            highlightIndices.push(idx, idx - 1, idx - 2);
+          if (yearRegex.test(cell)) {
+            // Resaltado: idx, idx-1, idx-2
+            [idx, idx - 1, idx - 2].forEach(k => {
+              if (k >= 0 && k < rowData.length) highlightIndices.add(k);
+            });
+            // Emoji: solo en idx-2 si está dentro de rango
+            const target = idx - 2;
+            if (target >= 0 && target < rowData.length) {
+              emojiIndices.add(target);
+            }
           }
         });
 
         let rowHTML = `<tr class="${rowClass}">`;
         rowData.forEach((cell, idx) => {
           let cleanCell = cell.replace(/"/g, "");
-          let isTestCell = cleanCell.match(/\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/);
+          const isTestCell = /\b(50|100|200|400|800|1500)\s(Fri|Bryst|Ryg|IM|Fly)\b/.test(cleanCell);
+
           let cellClass = isTestCell ? "test-cell" : "";
-
-          let cellContent = cleanCell;
-
-          if (highlightIndices.includes(idx)) {
+          if (highlightIndices.has(idx)) {
             cellClass += " year-highlight";
-            // Si es la columna de tiempo, añadimos el emoji
-            if (idx === tiempoIndex) {
-              cellContent = "🆕 " + cleanCell;
-            }
           }
 
-          rowHTML += `<td class="${cellClass.trim()}">${cellContent}</td>`;
+          if (emojiIndices.has(idx)) {
+            cleanCell = "🆕 " + cleanCell;
+          }
+
+          rowHTML += `<td class="${cellClass.trim()}">${cleanCell}</td>`;
         });
         rowHTML += "</tr>";
         table += rowHTML;
