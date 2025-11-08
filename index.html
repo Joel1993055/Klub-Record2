@@ -37,11 +37,6 @@
     button.category-btn.active{ background:#333; border-color:#000; }
     #btn-summary{ background:#222; }
     #btn-summary:hover{ background:#000; }
-    .year-select {
-      display:flex; align-items:center; gap:6px; font-size:14px;
-      background:var(--card); border:1px solid #ddd; border-radius:8px; padding:6px 8px;
-    }
-    select { border:0; background:transparent; font-size:14px; }
     .searchbox{
       display:flex; align-items:center; gap:8px; padding:8px 10px;
       background:var(--card); border:1px solid #ddd; border-radius:8px;
@@ -70,17 +65,9 @@
     @keyframes spinShark{ 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
     .status{ color:var(--muted); font-size:12px; margin-top:6px; text-align:center; }
     .error{ color:#b00020; font-weight:600; }
-    /* Quick results (compact search) */
-    .quick-results{ display:none; text-align:left; max-width:1100px; margin:10px auto 0; }
-    .quick-results .card{ background:#fff; border:1px solid #e6e6e6; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,.06); padding:12px;}
-    .qr-item{ display:flex; justify-content:space-between; padding:8px 6px; border-bottom:1px dashed #e6e6e6; }
-    .qr-item:last-child{ border-bottom:0; }
-    .qr-name{ font-weight:700; }
-    .qr-meta{ color:#444; }
     @media (max-width:720px){
       thead th, td{ padding:8px 10px; font-size:13px; }
       .searchbox{ min-width:unset; width:100%; }
-      .year-select{ width:100%; justify-content:center; }
     }
   </style>
 </head>
@@ -96,23 +83,12 @@
       <button class="category-btn" data-category="PIGER_LANGBANE"   role="tab" aria-selected="false">Piger Langbane</button>
       <button id="btn-summary" class="category-btn" type="button" title="Årsresumé af rekorder">Årsresumé <span id="year-tag"></span></button>
     </div>
-    <div class="year-select" aria-label="Vælg år">
-      <span>År:</span>
-      <select id="year-select"></select>
-    </div>
-    <div class="searchbox" aria-label="Søg efter navn">
-      🔎 <input id="search" type="search" placeholder="Søg efter navn…" aria-label="Søg i tabellen" />
+    <div class="searchbox" aria-label="Søg i tabellen">
+      🔎 <input id="search" type="search" placeholder="Søg i alle kolonner…" aria-label="Søg i tabellen" />
     </div>
   </div>
 
-  <div class="quick-results" id="quick-results" aria-live="polite">
-    <div class="card">
-      <div style="font-weight:700; margin-bottom:8px">Resultater</div>
-      <div id="qr-list"></div>
-    </div>
-  </div>
-
-  <div class="container" aria-live="polite" id="table-container">
+  <div class="container" aria-live="polite">
     <div class="loading" aria-busy="true">
       <div class="shark-spinner">🦈</div>
       <p>Indlæser data…</p>
@@ -143,14 +119,13 @@
     let fullRows = [];
     let filteredRows = [];
     let sortState = { index: null, dir: 1 };
-    let normalizedCache = {}; // per-category cache for "all entries"
-    let normalizedAll = null; // global cache across ALL categories (for quick search)
     const currentYear = new Date().getFullYear();
     document.getElementById("year-tag").textContent = currentYear;
 
     /*** UTILS ***/
     const $ = (sel, el=document) => el.querySelector(sel);
     const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
     function showLoading(show){
       const ld = $(".loading");
       ld.style.display = show ? "flex" : "none";
@@ -194,7 +169,7 @@
       return await res.text();
     }
 
-    /*** RENDER TABLE ***/
+    /*** RENDER ***/
     function renderTable(){
       const table = $("#records");
       if (!fullRows.length){
@@ -214,8 +189,8 @@
       });
       thead += "</tr></thead>";
 
-      // tbody (highlight any year token)
-      const yearRegex = /\b20\d{2}\b/;
+      // tbody
+      const yearRegex = new RegExp(`\\b${currentYear}\\b`);
       let tbody = "<tbody>";
       filteredRows.forEach((row) => {
         const rowData = row.map(c => String(c||"").trim());
@@ -261,7 +236,7 @@
       });
     }
 
-    /*** LOAD CATEGORY ***/
+    /*** LOAD ***/
     async function loadCategory(cat){
       try{
         currentCategory = cat;
@@ -280,9 +255,6 @@
         filteredRows = fullRows.slice(2);
         sortState = { index: null, dir: 1 };
         renderTable();
-        // clear search & quick results on category change
-        $("#search").value = "";
-        toggleQuickResults(false);
         showLoading(false);
       } catch(err){
         console.error(err);
@@ -299,7 +271,7 @@
       });
     }
 
-    /*** MATRIX HELPERS ***/
+    /*** SUMMARY HELPERS ***/
     function safeCell(rows, r, c){
       if (r < 0 || c < 0) return "";
       if (r >= rows.length) return "";
@@ -327,36 +299,29 @@
       return null;
     }
 
-    // Pool helpers (returns label + length)
-    function poolFromCategoryLabel(categoryLabel){
-      const s = String(categoryLabel||"").toUpperCase();
-      if (s.includes("KORTBANE")) return { label: "Kortbane", length: "25 m" };
-      if (s.includes("LANGBANE")) return { label: "Langebane", length: "50 m" };
-      return { label: "", length: "" };
-    }
-
-    /*** COLLECT ENTRIES (for a specific year) ***/
     function collectYearEntriesFromMatrix(rows, categoryLabel, year){
       const entries = [];
       const yearRe = new RegExp(`\\b${year}\\b`);
       const seen = new Set();
-      const poolInfo = poolFromCategoryLabel(categoryLabel);
 
       for (let ri=0; ri<rows.length; ri++){
         const row = rows[ri];
         if (!row) continue;
 
         const rowLabel = findRowLabel(row);
-        const offset = ageToOffset(parseRowLabelForAge(rowLabel));
+        const ageParsedForOffset = parseRowLabelForAge(rowLabel);
+        const offset = ageToOffset(ageParsedForOffset);
 
         for (let ci=0; ci<row.length; ci++){
           const cell = String(row[ci]||"").trim();
           if (!yearRe.test(cell)) continue;
 
+          // Relative to the year cell
           const time  = safeCell(rows, ri, ci - 1);
           const name  = safeCell(rows, ri, ci - 2);
           const age   = safeCell(rows, ri, 1);        // ALWAYS from column B
 
+          // Event (løb)
           let event = "";
           if (offset != null){
             event = safeCell(rows, ri - offset, ci - 2);
@@ -368,7 +333,7 @@
           const hasCore = time && (name || event);
           if (!hasCore) continue;
 
-          const key = `${categoryLabel}|${name}|${age}|${time}|${event}|${year}`;
+          const key = `${categoryLabel}|${name}|${age}|${time}|${event}`;
           if (seen.has(key)) continue;
           seen.add(key);
 
@@ -377,65 +342,13 @@
             "Alder": age,
             "Løb": event,
             "Tid": time,
-            "Bassin": poolInfo.length,  // "25 m" / "50 m"
-            "Kategori": categoryLabel,  // original sheet label
-            "År": year
+            "Kategori": categoryLabel
           });
         }
       }
       return entries;
     }
 
-    /*** COLLECT ALL ENTRIES (any year, for quick search) ***/
-    function collectAllEntriesFromMatrix(rows, categoryLabel){
-      const entries = [];
-      const yearRe = /\b20\d{2}\b/;
-      const seen = new Set();
-      const poolInfo = poolFromCategoryLabel(categoryLabel);
-
-      for (let ri=0; ri<rows.length; ri++){
-        const row = rows[ri];
-        if (!row) continue;
-
-        const rowLabel = findRowLabel(row);
-        const offset = ageToOffset(parseRowLabelForAge(rowLabel));
-
-        for (let ci=0; ci<row.length; ci++){
-          const cell = String(row[ci]||"").trim();
-          if (!yearRe.test(cell)) continue;
-
-          const year  = cell.match(yearRe)?.[0] || "";
-          const time  = safeCell(rows, ri, ci - 1);
-          const name  = safeCell(rows, ri, ci - 2);
-          const age   = safeCell(rows, ri, 1); // column B
-          let event = "";
-          if (offset != null){
-            event = safeCell(rows, ri - offset, ci - 2);
-          }
-          if (!event) {
-            event = safeCell(rows, 1, ci - 2) || safeCell(rows, 0, ci - 2);
-          }
-          if (!time || !name) continue;
-
-          const key = `${categoryLabel}|${name}|${age}|${time}|${event}|${year}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-
-          entries.push({
-            "Navn": name,
-            "Alder": age,
-            "Løb": event,
-            "Tid": time,
-            "Bassin": poolInfo.length,  // "25 m" / "50 m"
-            "Kategori": categoryLabel,
-            "År": year
-          });
-        }
-      }
-      return entries;
-    }
-
-    /*** FETCH HELPERS ***/
     async function fetchAllCategories(){
       const cats = Object.keys(sheetUrls);
       const texts = await Promise.all(cats.map(k => fetchCSV(sheetUrls[k]).catch(()=> "")));
@@ -443,44 +356,18 @@
       return cats.map((cat, i) => ({ cat, rows: parsed[i]||[] }));
     }
 
-    async function getAllEntries(){
-      if (normalizedAll) return normalizedAll;
-      const datasets = await fetchAllCategories();
-      let all = [];
-      for (const ds of datasets){
-        const label = ds.cat.replaceAll("_"," ");
-        all = all.concat(collectAllEntriesFromMatrix(ds.rows, label));
-      }
-      // order: by name, then best time
-      all.sort((a,b) => (String(a["Navn"]||"").localeCompare(String(b["Navn"]||""), undefined, {numeric:true,sensitivity:"base"})) 
-                        || cmpSmart(a["Tid"]||"", b["Tid"]||""));
-      normalizedAll = all;
-      return all;
-    }
-
-    /*** SUMMARY POPUP ***/
-    function buildYearOptionsHTML(selectedYear){
-      const years = [];
-      const maxY = new Date().getFullYear();
-      for (let y = maxY; y >= maxY - 15; y--) years.push(y);
-      return years.map(y => `<option value="${y}" ${y===selectedYear?'selected':''}>${y}</option>`).join("");
-    }
-
-    function openSummaryPage(entries, year){
+    function openSummaryPage(entries){
       const total = entries.length;
       entries.sort((a,b)=> (String(a["Løb"]||"").localeCompare(String(b["Løb"]||""), undefined, {numeric:true,sensitivity:"base"})) || cmpSmart(a["Tid"]||"", b["Tid"]||""));
-
       const htmlRows = entries.map(e => `
         <tr>
           <td>${e["Navn"]||""}</td>
           <td>${e["Alder"]||""}</td>
           <td>${e["Løb"]||""}</td>
           <td>${e["Tid"]||""}</td>
-          <td>${e["Bassin"]||""}</td>
+          <td>${e["Kategori"]||""}</td>
         </tr>
       `).join("");
-
-      const yearsOptions = buildYearOptionsHTML(year);
 
       const w = window.open("", "_blank");
       const doc = w.document;
@@ -490,16 +377,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Årsresumé ${year}</title>
+<title>Årsresumé ${currentYear}</title>
 <style>
   body{font-family:Arial,system-ui,Segoe UI,Roboto,sans-serif;background:#f6f6f6;color:#111;margin:0;padding:20px;}
-  .wrap{max-width:1100px;margin:0 auto;background:#fff;border:1px solid #e6e6e6;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:16px;}
-  header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-  header img{width:80px;height:auto}
-  h1{margin:0}
+  h1{margin:0 0 8px}
   .muted{color:#666}
-  .topbar{display:flex;align-items:center;gap:10px;margin:8px 0 12px}
-  .topbar select{font-size:14px}
+  .wrap{max-width:1100px;margin:0 auto;background:#fff;border:1px solid #e6e6e6;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:16px;}
   table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
   th,td{border:1px solid #000;padding:8px 10px;text-align:center;white-space:nowrap}
   thead th{position:sticky;top:0;background:#fff;z-index:1}
@@ -509,46 +392,22 @@
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klublogo" />
-      <div>
-        <h1>Årsresumé ${year} <span class="badge">${total}</span></h1>
-        <p class="muted">Dette er klubrekorder slået i ${year}. Tid = 1 celle til venstre; Navn = 2 til venstre; Alder = kolonne B; Løb = ovenfor afhængigt af årgang/KR.</p>
-      </div>
-    </header>
-
-    <div class="topbar">
-      <label for="yr">År:</label>
-      <select id="yr">${yearsOptions}</select>
-    </div>
-
+    <h1>Årsresumé ${currentYear} <span class="badge">${total}</span></h1>
     <div style="overflow:auto">
       <table>
         <thead><tr>
-          <th>Navn</th><th>Alder</th><th>Løb</th><th>Tid</th><th>Bassin</th>
+          <th>Navn</th><th>Alder</th><th>Løb</th><th>Tid</th><th>Kategori</th>
         </tr></thead>
-        <tbody>${htmlRows || `<tr><td colspan="5">Ingen registreringer i ${year}.</td></tr>`}</tbody>
+        <tbody>${htmlRows || `<tr><td colspan="5">Ingen registreringer i ${currentYear}.</td></tr>`}</tbody>
       </table>
     </div>
   </div>
-
-<script>
-  // notify opener to rebuild summary with another year
-  document.getElementById('yr').addEventListener('change', function(){
-    const y = parseInt(this.value,10);
-    if (window.opener && !isNaN(y)) {
-      window.opener.postMessage({ type: 'REQ_SUMMARY', year: y }, '*');
-      window.close();
-    }
-  });
-</script>
 </body>
 </html>`);
       doc.close();
     }
 
-    async function buildYearSummary(forYear){
-      const year = forYear || parseInt($("#year-select").value, 10) || currentYear;
+    async function buildYearSummary(){
       try{
         showLoading(true);
         setStatus("Genererer årsresumé…");
@@ -556,10 +415,10 @@
         let all = [];
         for (const ds of datasets){
           const label = ds.cat.replaceAll("_"," ");
-          const entries = collectYearEntriesFromMatrix(ds.rows, label, year);
+          const entries = collectYearEntriesFromMatrix(ds.rows, label, currentYear);
           all = all.concat(entries);
         }
-        openSummaryPage(all, year);
+        openSummaryPage(all);
         setStatus("");
       } catch(e){
         console.error(e);
@@ -569,88 +428,20 @@
       }
     }
 
-    /*** QUICK RESULTS (compact search by name across ALL sheets) ***/
-    function toggleQuickResults(show){
-      $("#quick-results").style.display = show ? "block" : "none";
-      $("#table-container").style.display = show ? "none" : "block";
-    }
-
-    function ensureNormalizedForCategory(){
-      if (normalizedCache[currentCategory]) return normalizedCache[currentCategory];
-      const entries = collectAllEntriesFromMatrix(fullRows, currentCategory.replaceAll("_"," "));
-      entries.sort((a,b)=>(parseInt(b["År"]||0)-parseInt(a["År"]||0)) || cmpSmart(a["Tid"], b["Tid"]));
-      normalizedCache[currentCategory] = entries;
-      return entries;
-    }
-
-    async function renderQuickResultsByName(term){
-      const q = term.trim().toLowerCase();
-      if (q.length < 2) { toggleQuickResults(false); return; }
-
-      // Search across ALL categories/years
-      const data = await getAllEntries();
-      const hits = data.filter(e => String(e["Navn"]||"").toLowerCase().includes(q));
-
-      // Render compact list: Navn — Alder — Løb — Tid — 25 m/50 m
-      const html = (hits.length ? hits : [{Navn:"Ingen resultater", Alder:"", Løb:"", Tid:"", Bassin:""}]).map(e => `
-        <div class="qr-item">
-          <div class="qr-name">${e["Navn"]||""}</div>
-          <div class="qr-meta">${e["Alder"]||""} år &nbsp;•&nbsp; ${e["Løb"]||""} &nbsp;•&nbsp; ${e["Tid"]||""} &nbsp;•&nbsp; ${e["Bassin"]||""}</div>
-        </div>
-      `).join("");
-
-      $("#qr-list").innerHTML = html;
-      toggleQuickResults(true);
-    }
-
     /*** UI EVENTS ***/
-    // Year select options
-    (function initYearSelect(){
-      const sel = $("#year-select");
-      const maxY = new Date().getFullYear();
-      for (let y = maxY; y >= maxY - 15; y--){
-        const opt = document.createElement("option");
-        opt.value = String(y);
-        opt.textContent = String(y);
-        if (y === maxY) opt.selected = true;
-        sel.appendChild(opt);
-      }
-    })();
+    document.getElementById("btn-summary").addEventListener("click", buildYearSummary);
 
-    document.getElementById("btn-summary").addEventListener("click", ()=>buildYearSummary());
-
-    // Search: compact results for names
     document.getElementById("search").addEventListener("input", debounce((e)=>{
-      const term = (e.target.value || "");
-      if (!term.trim()){
-        toggleQuickResults(false);
-        filteredRows = fullRows.slice(2);
-        renderTable();
-        return;
-      }
-      renderQuickResultsByName(term); // async; no need to await
+      const term = (e.target.value || "").toLowerCase();
+      filteredRows = fullRows.slice(2).filter(r => r.some(c => String(c||"").toLowerCase().includes(term)));
+      renderTable();
     }, 120));
 
-    // Category buttons
     $$(".category-btn").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const cat = btn.dataset.category;
-        if (cat && sheetUrls[cat]) {
-          // reset per-category cache; keep global cache for quick search
-          normalizedCache = {};
-          loadCategory(cat);
-        }
+        if (cat && sheetUrls[cat]) loadCategory(cat);
       });
-    });
-
-    // Handle popup requests to change year
-    window.addEventListener("message", (ev)=>{
-      if (!ev || !ev.data) return;
-      const { type, year } = ev.data;
-      if (type === "REQ_SUMMARY" && !isNaN(parseInt(year,10))) {
-        $("#year-select").value = String(parseInt(year,10));
-        buildYearSummary(parseInt(year,10));
-      }
     });
 
     /*** INIT ***/
@@ -658,6 +449,7 @@
       const url = new URL(location.href);
       const qcat = url.searchParams.get("cat");
       const firstCat = (qcat && sheetUrls[qcat]) ? qcat : "DRENGE_KORTBANE";
+      // set active style
       $$(".category-btn").forEach(b=>{
         const active = b.dataset.category === firstCat;
         b.classList.toggle("active", active);
@@ -668,3 +460,5 @@
   </script>
 </body>
 </html>
+
+
