@@ -316,6 +316,7 @@
           const cell = String(row[ci]||"").trim();
           if (!yearRe.test(cell)) continue;
 
+          // Relative to the year cell
           const time  = safeCell(rows, ri, ci - 1);
           const name  = safeCell(rows, ri, ci - 2);
           const age   = safeCell(rows, ri, 1);        // ALWAYS from column B
@@ -358,14 +359,17 @@
     function openSummaryPage(entries){
       const total = entries.length;
 
-      // Sort entries by event then time
-      entries.sort((a,b)=> (String(a["Løb"]||"").localeCompare(String(b["Løb"]||""), undefined, {numeric:true,sensitivity:"base"})) || cmpSmart(a["Tid"]||"", b["Tid"]||""));
+      // Ordenar por nombre (Navn); si empata, por Løb y luego por tiempo
+      const byName = (a, b) =>
+        String(a["Navn"]||"").localeCompare(String(b["Navn"]||""), undefined, { sensitivity:"base" }) ||
+        String(a["Løb"]||"").localeCompare(String(b["Løb"]||""), undefined, { numeric:true, sensitivity:"base" }) ||
+        cmpSmart(a["Tid"]||"", b["Tid"]||"");
 
-      // Split by gender
+      // Split por género
       const isDrenge = e => String(e["Kategori"]||"").toUpperCase().startsWith("DRENGE");
       const isPiger  = e => String(e["Kategori"]||"").toUpperCase().startsWith("PIGER");
-      const drengeEntries = entries.filter(isDrenge);
-      const pigerEntries  = entries.filter(isPiger);
+      const drengeEntries = entries.filter(isDrenge).sort(byName);
+      const pigerEntries  = entries.filter(isPiger).sort(byName);
 
       const renderTable = (rows) => {
         if (!rows.length) return `<div class="empty">Ingen registreringer i ${currentYear}.</div>`;
@@ -431,7 +435,7 @@
           <span class="badge" title="Antal klubrekorder i det aktuelle år">🔴 ${total} rekorder</span>
         </h1>
         <div class="sub">
-          Dette dokument viser alle klubrekorder sat i ${currentYear}. Tallet i mærket angiver det samlede antal rekorder opnået i løbet af året. 
+          Dette dokument viser alle klubrekorder sat i ${currentYear}. Tallet i mærket angiver det samlede antal rekorder opnået i løbet af året.
         </div>
       </div>
     </div>
@@ -506,4 +510,3 @@
   </script>
 </body>
 </html>
-
