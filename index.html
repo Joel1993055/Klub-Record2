@@ -71,13 +71,13 @@
     .test-cell{ background:#ffcccc !important; color:#000; font-weight:bold; }
     .kr-row{ font-weight:bold; }
     .year-highlight{ background:var(--highlight) !important; font-weight:bold; }
+    mark { background: #fff799; padding: 0 2px; border-radius: 2px; }
     .loading{ display:none; flex-direction:column; align-items:center; justify-content:center; gap:10px; margin:14px 0; }
     .shark-spinner{ font-size:40px; display:inline-block; animation:spinShark 1s linear infinite; }
     @keyframes spinShark{ 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
     .status{ color:var(--muted); font-size:12px; margin-top:6px; text-align:center; }
     .error{ color:#b00020; font-weight:600; }
 
-    /* ===== Mobile tweaks ===== */
     @media (max-width:860px){
       .searchbox{ min-width:unset; width:100%; }
       .button-container{ gap:6px; }
@@ -99,11 +99,11 @@
 
   <div class="toolbar">
     <div class="button-container" role="tablist" aria-label="Kategorier">
-      <button class="category-btn" data-category="DRENGE_KORTBANE" role="tab" aria-selected="false">Drenge Kortbane</button>
-      <button class="category-btn" data-category="DRENGE_LANGBANE"  role="tab" aria-selected="false">Drenge Langbane</button>
-      <button class="category-btn" data-category="PIGER_KORTBANE"   role="tab" aria-selected="false">Piger Kortbane</button>
-      <button class="category-btn" data-category="PIGER_LANGBANE"   role="tab" aria-selected="false">Piger Langbane</button>
-      <button id="btn-summary" class="category-btn" type="button" title="Årsresumé af rekorder">Årsresumé <span id="year-tag"></span></button>
+      <button class="category-btn" data-category="DRENGE_KORTBANE" role="tab">Drenge Kortbane</button>
+      <button class="category-btn" data-category="DRENGE_LANGBANE" role="tab">Drenge Langbane</button>
+      <button class="category-btn" data-category="PIGER_KORTBANE" role="tab">Piger Kortbane</button>
+      <button class="category-btn" data-category="PIGER_LANGBANE" role="tab">Piger Langbane</button>
+      <button id="btn-summary" class="category-btn" type="button" title="Årets klubrekorder">Årsresumé <span id="year-tag"></span></button>
     </div>
     <div class="searchbox" aria-label="Søg i tabellen">
       🔎 <input id="search" type="search" placeholder="Søg i alle kolonner…" aria-label="Søg i tabellen" />
@@ -127,7 +127,7 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
-    /*** CONFIG (code in English, UI text in Danish) ***/
+    /*** CONFIG ***/
     const sheetUrls = {
       "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=555223609&output=csv",
       "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=1217377815&output=csv",
@@ -147,51 +147,15 @@
     /*** UTILS ***/
     const $ = (sel, el=document) => el.querySelector(sel);
     const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-
-    function showLoading(show){
-      const ld = $(".loading");
-      ld.style.display = show ? "flex" : "none";
-      ld.setAttribute("aria-busy", show ? "true":"false");
-    }
-    function setStatus(msg, isError=false){
-      const s = $("#status");
-      s.textContent = msg || "";
-      s.classList.toggle("error", !!isError);
-    }
+    function showLoading(show){ const ld=$(".loading"); ld.style.display=show?"flex":"none"; ld.setAttribute("aria-busy", show ? "true":"false"); }
+    function setStatus(msg, isError=false){ const s=$("#status"); s.textContent=msg||""; s.classList.toggle("error", !!isError); }
     function debounce(fn, ms=200){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
-
-    // Parse h:mm:ss.cc, m:ss.cc, ss.cc
-    function timeToSeconds(txt){
-      if (!txt) return NaN;
-      const s = String(txt).trim();
-      if (!s) return NaN;
-      const parts = s.split(":");
-      if (parts.length === 1) { return parseFloat(parts[0].replace(",", ".")); }
-      let sec = 0;
-      for (let i=0; i<parts.length; i++){
-        const p = parts[i].replace(",", ".");
-               const val = parseFloat(p);
-        if (isNaN(val)) return NaN;
-        const pow = parts.length - 1 - i;
-        sec += val * Math.pow(60, pow);
-      }
-      return sec;
-    }
-    function cmpSmart(a, b){
-      const ta = (String(a).includes(":")) ? timeToSeconds(a) : NaN;
-      const tb = (String(b).includes(":")) ? timeToSeconds(b) : NaN;
-      const bothTime = !isNaN(ta) && !isNaN(tb);
-      if (bothTime) return ta - tb;
-      return String(a).localeCompare(String(b), "da", { numeric:true, sensitivity:"base" });
-    }
+    function timeToSeconds(txt){ if(!txt)return NaN; const s=String(txt).trim(); if(!s)return NaN; const parts=s.split(":"); if(parts.length===1){return parseFloat(parts[0].replace(",","."));} let sec=0; for(let i=0;i<parts.length;i++){ const p=parts[i].replace(",","."), val=parseFloat(p); if(isNaN(val)) return NaN; const pow=parts.length-1-i; sec+=val*Math.pow(60,pow);} return sec; }
+    function cmpSmart(a,b){ const ta=String(a).includes(":")?timeToSeconds(a):NaN; const tb=String(b).includes(":")?timeToSeconds(b):NaN; if(!isNaN(ta)&&!isNaN(tb)) return ta-tb; return String(a).localeCompare(String(b),"da",{numeric:true,sensitivity:"base"}); }
     function parseCSV(text){ return Papa.parse(text, { skipEmptyLines: true }).data; }
-    async function fetchCSV(url){
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.text();
-    }
+    async function fetchCSV(url){ const res=await fetch(url, { cache:"no-store" }); if(!res.ok) throw new Error(`HTTP ${res.status}`); return await res.text(); }
 
-    /*** RENDER ***/
+    /*** TABLE RENDER ***/
     function renderTable(){
       const table = $("#records");
       if (!fullRows.length){
@@ -211,6 +175,10 @@
       });
       thead += "</tr></thead>";
 
+      // term highlight
+      const term = ($("#search").value || "").trim();
+      const regex = term ? new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")})`, "gi") : null;
+
       // tbody
       const yearRegex = new RegExp(`\\b${currentYear}\\b`);
       let tbody = "<tbody>";
@@ -218,11 +186,11 @@
         const rowData = row.map(c => String(c||"").trim());
         const isKR = rowData.some(cell => cell === "KR");
         const rowClass = isKR ? "kr-row" : "";
-        const highlight = new Set();
+        const toHighlight = new Set();
         const emojiAt = new Set();
         rowData.forEach((cell, idx) => {
           if (yearRegex.test(cell)) {
-            [idx, idx-1, idx-2].forEach(k => { if (k >= 0 && k < rowData.length) highlight.add(k); });
+            [idx, idx-1, idx-2].forEach(k => { if (k >= 0 && k < rowData.length) toHighlight.add(k); });
             const t = idx - 2;
             if (t >= 0 && t < rowData.length) emojiAt.add(t);
           }
@@ -232,8 +200,9 @@
           let clean = cell.replace(/"/g,"");
           const isTestCell = TEST_REGEX.test(clean);
           let cls = isTestCell ? "test-cell" : "";
-          if (highlight.has(idx)) cls += " year-highlight";
+          if (toHighlight.has(idx)) cls += " year-highlight";
           if (emojiAt.has(idx)) clean = "🆕 " + clean;
+          if (regex) clean = clean.replace(regex, '<mark>$1</mark>');
           tbody += `<td class="${cls.trim()}">${clean}</td>`;
         });
         tbody += `</tr>`;
@@ -258,7 +227,7 @@
       });
     }
 
-    /*** LOAD ***/
+    /*** LOAD CATEGORY ***/
     async function loadCategory(cat){
       try{
         currentCategory = cat;
@@ -277,10 +246,10 @@
         filteredRows = fullRows.slice(2);
         sortState = { index: null, dir: 1 };
         renderTable();
-        showLoading(false);
       } catch(err){
         console.error(err);
         setStatus("Fejl ved indlæsning af data. Prøv igen.", true);
+      } finally{
         showLoading(false);
       }
     }
@@ -321,15 +290,14 @@
       return null;
     }
 
+    // Recolecta entradas del año actual en una matriz de hoja
     function collectYearEntriesFromMatrix(rows, categoryLabel, year){
       const entries = [];
       const yearRe = new RegExp(`\\b${year}\\b`);
       const seen = new Set();
-
       for (let ri=0; ri<rows.length; ri++){
         const row = rows[ri];
         if (!row) continue;
-
         const rowLabel = findRowLabel(row);
         const ageParsedForOffset = parseRowLabelForAge(rowLabel);
         const offset = ageToOffset(ageParsedForOffset);
@@ -340,31 +308,17 @@
 
           const time  = safeCell(rows, ri, ci - 1);
           const name  = safeCell(rows, ri, ci - 2);
-          const age   = safeCell(rows, ri, 1);        // ALWAYS from column B
-
-          // Event (løb)
+          const age   = safeCell(rows, ri, 1); // Columna B
           let event = "";
-          if (offset != null){
-            event = safeCell(rows, ri - offset, ci - 2);
-          }
-          if (!event) {
-            event = safeCell(rows, 1, ci - 2) || safeCell(rows, 0, ci - 2);
-          }
+          if (offset != null){ event = safeCell(rows, ri - offset, ci - 2); }
+          if (!event){ event = safeCell(rows, 1, ci - 2) || safeCell(rows, 0, ci - 2); }
 
-          const hasCore = time && (name || event);
-          if (!hasCore) continue;
-
+          if (!time || !(name || event)) continue;
           const key = `${categoryLabel}|${name}|${age}|${time}|${event}`;
           if (seen.has(key)) continue;
           seen.add(key);
 
-          entries.push({
-            "Navn": name,
-            "Alder": age,
-            "Løb": event,
-            "Tid": time,
-            "Kategori": categoryLabel
-          });
+          entries.push({ "Navn": name, "Alder": age, "Løb": event, "Tid": time, "Kategori": categoryLabel });
         }
       }
       return entries;
@@ -386,7 +340,6 @@
         String(a["Løb"]||"").localeCompare(String(b["Løb"]||""), "da", { numeric:true, sensitivity:"base" }) ||
         cmpSmart(a["Tid"]||"", b["Tid"]||"");
 
-      // Split por género
       const isDrenge = e => String(e["Kategori"]||"").toUpperCase().startsWith("DRENGE");
       const isPiger  = e => String(e["Kategori"]||"").toUpperCase().startsWith("PIGER");
       const drengeEntries = entries.filter(isDrenge).sort(byName);
@@ -520,7 +473,6 @@
       const url = new URL(location.href);
       const qcat = url.searchParams.get("cat");
       const firstCat = (qcat && sheetUrls[qcat]) ? qcat : "DRENGE_KORTBANE";
-      // set active style
       $$(".category-btn").forEach(b=>{
         const active = b.dataset.category === firstCat;
         b.classList.toggle("active", active);
