@@ -58,7 +58,7 @@
       border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; text-align:left;
     }
     .table-wrap{ overflow:auto; border-radius:8px; border:1px solid #e6e6e6; -webkit-overflow-scrolling: touch; }
-    table{ width:100%; border-collapse:collapse; font-size:clamp(13px,3vw,14px); }
+    table{ width:100%; border-collapse:collapse; font-size:clamp(13px,3vw,14px); table-layout:auto; }
     caption{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
     thead th, td{
       padding:10px 12px; border:1px solid var(--border); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -346,14 +346,14 @@
       return cats.map((cat, i) => ({ cat, rows: parsed[i]||[] }));
     }
 
-    // --- Årsresumé: genera HTML y abre con Blob URL (evita about:blank en blanco) ---
+    // --- Årsresumé: genera HTML responsive y abre con Blob URL ---
     function openSummaryPage(entries){
       const total = entries.length;
 
       // Orden danés por nombre; si empata, por prueba y luego por tiempo
       const byName = (a, b) =>
         String(a["Navn"]||"").localeCompare(String(b["Navn"]||""), "da", { sensitivity:"base" }) ||
-        String(a["Løb"]||"").localeCompare(String(b["Løb"]||""), "da", { numeric:true, sensitivity:"base" }) ||
+        String(a["Løb"]||"").localeCompare(String(b["Løb"]||"", "da"), { numeric:true, sensitivity:"base" }) ||
         cmpSmart(a["Tid"]||"", b["Tid"]||"");
 
       // Split por género
@@ -362,22 +362,29 @@
       const drengeEntries = entries.filter(isDrenge).sort(byName);
       const pigerEntries  = entries.filter(isPiger).sort(byName);
 
+      // Encabezados para data-label en vista móvil
+      const HEADS = ["Navn","Alder","Løb","Tid","Kategori"];
+
       const renderTable = (rows) => {
         if (!rows.length) return `<div class="empty">Ingen registreringer i ${currentYear}.</div>`;
         const trs = rows.map(e => `
           <tr>
-            <td>${e["Navn"]||""}</td>
-            <td>${e["Alder"]||""}</td>
-            <td>${e["Løb"]||""}</td>
-            <td>${e["Tid"]||""}</td>
-            <td>${e["Kategori"]||""}</td>
+            <td data-label="${HEADS[0]}">${e["Navn"]||""}</td>
+            <td data-label="${HEADS[1]}">${e["Alder"]||""}</td>
+            <td data-label="${HEADS[2]}">${e["Løb"]||""}</td>
+            <td data-label="${HEADS[3]}">${e["Tid"]||""}</td>
+            <td data-label="${HEADS[4]}">${e["Kategori"]||""}</td>
           </tr>
         `).join("");
         return `
           <div class="table-wrap">
-            <table>
+            <table class="responsive-table" aria-describedby="table-desc">
               <thead><tr>
-                <th>Navn</th><th>Alder</th><th>Løb</th><th>Tid</th><th>Kategori</th>
+                <th scope="col">${HEADS[0]}</th>
+                <th scope="col">${HEADS[1]}</th>
+                <th scope="col">${HEADS[2]}</th>
+                <th scope="col">${HEADS[3]}</th>
+                <th scope="col">${HEADS[4]}</th>
               </tr></thead>
               <tbody>${trs}</tbody>
             </table>
@@ -385,7 +392,7 @@
         `;
       };
 
-      // HTML completo de la página
+      // HTML completo de la página (con CSS responsive de tabla apilada)
       const html = `<!doctype html>
 <html lang="da">
 <head>
@@ -396,9 +403,10 @@
   :root{
     --red:#d60000; --ink:#111; --muted:#666; --bg:#f6f6f6; --card:#fff; --border:#000;
   }
+  *{box-sizing:border-box}
   body{font-family:Arial,system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:20px;}
   .wrap{max-width:1200px;margin:0 auto;background:var(--card);border:1px solid #e6e6e6;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:20px;}
-  .header{display:flex; align-items:center; gap:14px; margin-bottom:4px;}
+  .header{display:flex; align-items:center; gap:14px; margin-bottom:4px; flex-wrap:wrap;}
   .logo{width:70px;height:auto;max-width:22vw;}
   h1{margin:0;color:var(--red);font-size:clamp(22px,4vw,32px)}
   .sub{margin:6px 0 14px; color:var(--muted); line-height:1.5; font-size:clamp(13px,3vw,15px);}
@@ -407,12 +415,48 @@
   .card{border:1px solid #e6e6e6;border-radius:10px;padding:14px;background:#fff; box-shadow:0 1px 6px rgba(0,0,0,.04);}
   .card h2{margin:0 0 8px; font-size:clamp(16px,3.5vw,18px)}
   .table-wrap{overflow:auto; border-radius:8px; border:1px solid #e6e6e6; -webkit-overflow-scrolling: touch;}
-  table{width:100%;border-collapse:collapse;font-size:clamp(12.5px,3vw,14px)}
-  th,td{border:1px solid var(--border);padding:8px 10px;text-align:center;white-space:nowrap}
+  table{width:100%;border-collapse:collapse;font-size:clamp(12.5px,3vw,14px); table-layout:auto;}
+  th,td{border:1px solid var(--border);padding:10px;text-align:center;white-space:nowrap}
   thead th{position:sticky;top:0;background:#fff;z-index:1}
   tr:nth-child(even){background:#fafafa}
   .empty{color:var(--muted); font-style:italic; border:1px dashed #ddd; border-radius:8px; padding:16px; text-align:center;}
-  @media (max-width:860px){ .grid{grid-template-columns:1fr;} .logo{width:56px;} .wrap{padding:14px;} }
+  /* --- Vista móvil: tabla apilada como tarjetas --- */
+  @media (max-width:700px){
+    .grid{grid-template-columns:1fr;}
+    .logo{width:56px;}
+    .wrap{padding:14px;}
+    .table-wrap{border:0}
+    table.responsive-table{border:0}
+    table.responsive-table thead{ 
+      /* Ocultamos cabecera para apilado accesible */
+      border:0; clip:rect(0 0 0 0); height:1px; margin:-1px; overflow:hidden; padding:0; position:absolute; width:1px;
+    }
+    table.responsive-table tbody tr{
+      display:block;
+      margin:10px 0 14px;
+      border:1px solid #e6e6e6;
+      border-radius:10px;
+      box-shadow:0 1px 6px rgba(0,0,0,.04);
+      background:#fff;
+    }
+    table.responsive-table tbody tr:nth-child(even){ background:#fff; }
+    table.responsive-table td{
+      display:grid; 
+      grid-template-columns: 40% 60%;
+      gap:8px;
+      text-align:left;
+      white-space:normal; /* permite salto de línea */
+      border:none;
+      border-bottom:1px solid #eee;
+      padding:10px 12px;
+    }
+    table.responsive-table td:last-child{ border-bottom:none; }
+    table.responsive-table td::before{
+      content: attr(data-label);
+      font-weight:700;
+      color:#333;
+    }
+  }
 </style>
 </head>
 <body>
@@ -423,7 +467,7 @@
         <h1>Årsresumé ${currentYear}
           <span class="badge" title="Antal klubrekorder i det aktuelle år">🔴 ${total} rekorder</span>
         </h1>
-        <div class="sub">
+        <div class="sub" id="table-desc">
           Dette dokument viser alle klubrekorder sat i ${currentYear}. Tallet i mærket angiver det samlede antal rekorder opnået i løbet af året.
         </div>
       </div>
@@ -444,7 +488,7 @@
 </body>
 </html>`;
 
-      // Abrir con Blob URL (evita about:blank vacío en algunos navegadores)
+      // Abrir con Blob URL
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
