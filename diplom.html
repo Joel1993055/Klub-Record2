@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Årsresumé & Diplomer</title>
+
   <style>
     :root{
       --red:#d60000;
@@ -16,6 +17,7 @@
       --radius:10px;
       --shadow:0 2px 12px rgba(0,0,0,0.08);
     }
+
     *,*::before,*::after{box-sizing:border-box}
     body {
       font-family: Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
@@ -29,35 +31,37 @@
     .logo { display:block; margin:0 auto 10px; width:150px; max-width:60vw; height:auto; }
     h1 { color:var(--red); font-size:clamp(22px,4vw,36px); margin:6px 0 10px; line-height:1.1; }
     .sub{margin:6px 0 14px; color:var(--muted); line-height:1.5; font-size:clamp(13px,3vw,15px);}
+
     .container{
       width:min(1200px,100%); margin:12px auto 0; background:var(--card); padding:16px;
       border-radius:var(--radius); box-shadow:var(--shadow); text-align:left;
     }
+
     .status{ color:var(--muted); font-size:12px; margin:8px 0; text-align:left; }
     .error{ color:#b00020; font-weight:600; }
-    .table-wrap{ overflow:auto; border-radius:8px; border:1px solid #e6e6e6; -webkit-overflow-scrolling: touch; }
+
+    .table-wrap{ overflow:auto; border-radius:8px; border:1px solid #e6e6e6; }
     table{ width:100%; border-collapse:collapse; font-size:clamp(13px,3vw,14px); table-layout:auto; }
     thead th, td{
       padding:10px 12px; border:1px solid var(--border); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     thead th{ position:sticky; top:0; background:#fff; z-index:2; font-weight:700; }
+
     tbody tr:nth-child(even){ background-color:#fafafa; }
     tbody tr:hover{ background-color:#f1f1f1; }
+
     .loading{ display:none; flex-direction:column; align-items:center; justify-content:center; gap:10px; margin:14px 0; }
     .shark-spinner{ font-size:40px; display:inline-block; animation:spinShark 1s linear infinite; }
     @keyframes spinShark{ 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
 
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
-    .card{border:1px solid #e6e6e6;border-radius:10px;padding:14px;background:#fff; box-shadow:0 1px 6px rgba(0,0,0,.04);}
-    .card h2{margin:0 0 8px; font-size:clamp(16px,3.5vw,18px)}
+    .card{border:1px solid #e6e6e6;border-radius:10px;padding:14px;background:#fff; }
 
     @media (max-width:860px){
       .container{ border-radius:12px; padding:12px; }
     }
     @media (max-width:700px){
       .grid{grid-template-columns:1fr;}
-      .table-wrap{border:0}
-      table.responsive-table{border:0}
       table.responsive-table thead{ 
         border:0; clip:rect(0 0 0 0); height:1px; margin:-1px; overflow:hidden; padding:0; position:absolute; width:1px;
       }
@@ -66,16 +70,13 @@
         margin:10px 0 14px;
         border:1px solid #e6e6e6;
         border-radius:10px;
-        box-shadow:0 1px 6px rgba(0,0,0,.04);
         background:#fff;
       }
-      table.responsive-table tbody tr:nth-child(even){ background:#fff; }
       table.responsive-table td{
         display:grid; 
         grid-template-columns: 40% 60%;
         gap:8px;
         text-align:left;
-        white-space:normal;
         border:none;
         border-bottom:1px solid #eee;
         padding:10px 12px;
@@ -89,8 +90,10 @@
     }
   </style>
 </head>
+
 <body>
   <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klublogo" class="logo" />
+
   <h1>Årsresumé <span id="year-tag"></span></h1>
   <p class="sub">Denne side viser alle klubrekorder sat i det valgte år og giver mulighed for at åbne et diplom for hver rekord.</p>
 
@@ -104,8 +107,11 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <script>
-    /*** CONFIG ***/
+    /**********************
+     * CONFIG
+     **********************/
     const sheetUrls = {
       "DRENGE_KORTBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=6811393&single=true&output=csv",
       "DRENGE_LANGBANE": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfGmunD4CHr8OxM1R2E5MpHWMa2lzRiG1A1MvnoLvmbDxVww3zsxe0hGgoClvJGQ/pub?gid=778236977&single=true&output=csv",
@@ -116,416 +122,190 @@
     const currentYear = new Date().getFullYear();
     document.getElementById("year-tag").textContent = currentYear;
 
-    /*** UTILS ***/
+    /***********************
+     * UTILS
+     ***********************/
     function showLoading(show){
       const ld = document.querySelector(".loading");
       ld.style.display = show ? "flex" : "none";
-      ld.setAttribute("aria-busy", show ? "true":"false");
     }
     function setStatus(msg, isError=false){
       const s = document.getElementById("status");
       s.textContent = msg || "";
       s.classList.toggle("error", !!isError);
     }
-    function timeToSeconds(txt){
-      if(!txt)return NaN;
-      const s=String(txt).trim();
-      if(!s)return NaN;
-      const parts=s.split(":");
-      if(parts.length===1){return parseFloat(parts[0].replace(",","."));}
-      let sec=0;
-      for(let i=0;i<parts.length;i++){
-        const p=parts[i].replace(",","."), val=parseFloat(p);
-        if(isNaN(val)) return NaN;
-        const pow=parts.length-1-i;
-        sec+=val*Math.pow(60,pow);
-      }
-      return sec;
-    }
-    function cmpSmart(a,b){
-      const ta=String(a).includes(":")?timeToSeconds(a):NaN;
-      const tb=String(b).includes(":")?timeToSeconds(b):NaN;
-      if(!isNaN(ta)&&!isNaN(tb)) return ta-tb;
-      return String(a).localeCompare(String(b),"da",{numeric:true,sensitivity:"base"});
-    }
+
     function parseCSV(text){ return Papa.parse(text, { skipEmptyLines: true }).data; }
-    async function fetchCSV(url){ const res=await fetch(url, { cache:"no-store" }); if(!res.ok) throw new Error("HTTP "+res.status); return await res.text(); }
+    async function fetchCSV(url){ const res=await fetch(url); return res.text(); }
 
-    /*** SUMMARY HELPERS (copiados de index.html) ***/
-    function safeCell(rows, r, c){
-      if (r < 0 || c < 0) return "";
-      if (r >= rows.length) return "";
-      const row = rows[r];
-      if (!row || c >= row.length) return "";
-      return String(row[c] || "").trim();
-    }
-    function findRowLabel(row){
-      for (let j=0; j<Math.min(3,row.length); j++){
-        const t = String(row[j]||"").trim();
-        if (t) return t;
-      }
-      return "";
-    }
-    function parseRowLabelForAge(label){
-      const s = String(label||"").toUpperCase();
-      const m = s.match(/\b(10|11|12|13|14|15|16|17|18)\b/);
-      if (m) return parseInt(m[1], 10);
-      if (/\bKR\b/.test(s) || /\bSENIOR\b/.test(s)) return "KR";
-      return null;
-    }
-    function ageToOffset(age){
-      if (age === "KR") return 9;
-      if (typeof age === "number") return Math.max(1, age - 9);
-      return null;
-    }
+    /************************
+     * DIPLOMA GENERATOR
+     ************************/
 
-    // Recolecta entradas del año actual en una matriz de hoja
-    function collectYearEntriesFromMatrix(rows, categoryLabel, year){
-      const entries = [];
-      // Misma expresión que en index.html: \bYEAR\b
-      const yearRe = new RegExp("\\b" + year + "\\b");
-      const seen = new Set();
-
-      for (let ri=0; ri<rows.length; ri++){
-        const row = rows[ri];
-        if (!row) continue;
-
-        const rowLabel = findRowLabel(row);
-        const ageParsedForOffset = parseRowLabelForAge(rowLabel);
-        const offset = ageToOffset(ageParsedForOffset);
-
-        for (let ci=0; ci<row.length; ci++){
-          const cell = String(row[ci]||"").trim();
-          if (!yearRe.test(cell)) continue;
-
-          const time  = safeCell(rows, ri, ci - 1);
-          const name  = safeCell(rows, ri, ci - 2);
-          const age   = safeCell(rows, ri, 1);        // SIEMPRE columna B
-
-          // Evento (løb)
-          let event = "";
-          if (offset != null){
-            event = safeCell(rows, ri - offset, ci - 2);
-          }
-          if (!event) {
-            event = safeCell(rows, 1, ci - 2) || safeCell(rows, 0, ci - 2);
-          }
-
-          const hasCore = time && (name || event);
-          if (!hasCore) continue;
-
-          const key = categoryLabel + "|" + name + "|" + age + "|" + time + "|" + event;
-          if (seen.has(key)) continue;
-          seen.add(key);
-
-          entries.push({
-            "Navn": name,
-            "Alder": age,
-            "Løb": event,
-            "Tid": time,
-            "Kategori": categoryLabel
-          });
-        }
-      }
-      return entries;
-    }
-
-    async function fetchAllCategories(){
-      const cats = Object.keys(sheetUrls);
-      const texts = await Promise.all(cats.map(k => fetchCSV(sheetUrls[k]).catch(()=> "")));
-      const parsed = texts.map(t => parseCSV(t||"").filter(r => r.some(c => String(c||"").trim()!=="")));
-      return cats.map((cat, i) => ({ cat, rows: parsed[i]||[] }));
-    }
-
-    /*** LIMPIEZA DE TEXTO PARA EL DIPLOMA ***/
-    function cleanDisplay(val){
-      return String(val || "")
-        .replace(/\\n/g, " ")  // secuencia "\n" literal
-        .replace(/\n/g, " ")   // salto de línea real
-        .replace(/\s+/g, " ")
-        .trim();
-    }
-
-    /*** DIPLOM ***/
     function openDiploma(entry) {
       const year = currentYear;
-      const name  = cleanDisplay(entry.Navn);
-      const time  = cleanDisplay(entry["Tid"]);
-      const loeb  = cleanDisplay(entry["Løb"]);
-      const alder = cleanDisplay(entry["Alder"]);
-      const kategori = String(entry["Kategori"] || "");
+      const name  = entry.Navn;
+      const time  = entry.Tid;
+      const loeb  = entry["Løb"];
+      const alder = entry.Alder;
+      const kategori = entry.Kategori;
 
-      // Detectar KORTBANE / LANGBANE a partir de la categoría
       let bane = "";
       const upCat = kategori.toUpperCase();
       if (upCat.includes("LANGBANE")) bane = "LANGBANE";
       else if (upCat.includes("KORTBANE")) bane = "KORTBANE";
 
-      const eventLine = bane
-        ? `${loeb} – ${alder} ÅR – ${bane}`
-        : `${loeb} – ${alder} ÅR`;
+      const eventLine = bane ? `${loeb} – ${alder} ÅR – ${bane}` : `${loeb} – ${alder} ÅR`;
 
-      const html = "<!doctype html>\\n" +
-`<html lang="da">
+      // LOGO REAL AQUÍ — Cambia si quieres PNG
+      const logoUrl = "https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/logo-club-red2.svg";
+
+      const diplomaHtml = `
+<!doctype html>
+<html>
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Diplom – ${name}</title>
   <style>
-    :root{
-      --red:#be1e2d;
-      --bg:#f2f4f7;
-      --ink:#0c1a24;
-      --muted:#7b8794;
-    }
-    *{box-sizing:border-box;margin:0;padding:0;}
     body{
-      font-family: "Helvetica Neue", Arial, system-ui, sans-serif;
-      background:var(--bg);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
-      padding:24px;
-      color:var(--ink);
+      font-family:Arial, sans-serif;
+      display:flex; flex-direction:column; align-items:center;
+      background:#f2f2f2;
+      padding:20px;
     }
     .frame{
-      background:#fff;
-      max-width:960px;
-      width:100%;
-      min-height:540px;
-      box-shadow:0 16px 40px rgba(15,23,42,0.18);
-      border-radius:4px;
-      overflow:hidden;
-      display:grid;
-      grid-template-columns:220px 1fr;
+      width:900px; background:#fff; min-height:500px;
+      display:grid; grid-template-columns:220px 1fr;
+      box-shadow:0 16px 40px rgba(0,0,0,0.18);
     }
     .left{
-      background:var(--red);
+      background:#be1e2d;
+      padding:30px 20px;
       color:#fff;
-      padding:40px 24px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      align-items:center;
-      text-transform:uppercase;
-      letter-spacing:0.18em;
-      font-weight:600;
+      display:flex; flex-direction:column;
+      justify-content:space-between; align-items:center;
     }
-    .left-top{
-      writing-mode:vertical-rl;
-      transform:rotate(180deg);
-      font-size:15px;
+    .club-logo-img{
+      width:120px; height:auto;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.4));
     }
-    .left-bottom{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:12px;
-      font-size:11px;
+    .right{ padding:50px 40px; text-align:center; }
+    .title{ font-size:32px; color:#be1e2d; letter-spacing:0.14em; margin-bottom:25px; }
+    .name{ font-size:30px; font-weight:700; margin-bottom:20px; }
+    .time{ font-size:24px; margin-bottom:20px; letter-spacing:0.1em;}
+    .event{ font-size:18px; margin-bottom:25px; text-transform:uppercase; letter-spacing:0.12em; }
+    .year{ font-size:16px; color:#666; margin-bottom:40px; }
+
+    .download-btn{
+      margin-top:25px; padding:10px 20px;
+      background:#be1e2d; color:#fff; border:none;
+      border-radius:8px; cursor:pointer;
+      font-weight:700; letter-spacing:0.08em;
+      box-shadow:0 6px 20px rgba(190,30,45,0.4);
     }
-    .club-logo{
-      width:80px;
-      height:80px;
-      border-radius:50%;
-      border:2px solid #fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:11px;
-      text-align:center;
-      padding:8px;
-    }
-    .right{
-      padding:48px 56px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      text-align:center;
-    }
-    .title{
-      font-size:34px;
-      letter-spacing:0.18em;
-      color:var(--red);
-      margin-bottom:40px;
-    }
-    .subtitle{
-      font-size:12px;
-      letter-spacing:0.32em;
-      color:var(--muted);
-      margin-bottom:24px;
-    }
-    .name{
-      font-size:32px;
-      letter-spacing:0.14em;
-      font-weight:800;
-      margin-bottom:28px;
-    }
-    .divider{
-      height:1px;
-      background:#cbd5e1;
-      margin:0 auto 32px;
-      width:70%;
-    }
-    .time{
-      font-size:22px;
-      letter-spacing:0.3em;
-      margin-bottom:28px;
-    }
-    .event{
-      font-size:16px;
-      letter-spacing:0.28em;
-      text-transform:uppercase;
-      margin-bottom:32px;
-    }
-    .year{
-      font-size:15px;
-      letter-spacing:0.24em;
-      color:var(--muted);
-    }
-    @media (max-width:800px){
-      .frame{
-        grid-template-columns:1fr;
-        max-height:none;
-      }
-      .left{
-        flex-direction:row;
-        padding:18px 20px;
-      }
-      .left-top{
-        writing-mode:horizontal-tb;
-        transform:none;
-      }
-      .right{
-        padding:32px 20px 36px;
-      }
-      .title{font-size:26px;}
-      .name{font-size:24px;}
+
+    @media print{
+      .download-btn{ display:none; }
+      body{ background:#fff; padding:0; }
+      .frame{ box-shadow:none; }
     }
   </style>
 </head>
 <body>
+
   <div class="frame">
-    <aside class="left">
-      <div class="left-top">
-        DIPLOM&nbsp;&nbsp;SØLLERØD&nbsp;&nbsp;SVØMMEKLUB
-      </div>
-      <div class="left-bottom">
-        <div class="club-logo">
-          SØLLERØD<br/>SVØMMEKLUB
-        </div>
-      </div>
-    </aside>
-    <main class="right">
+    <div class="left">
+      <img src="${logoUrl}" class="club-logo-img" />
+    </div>
+
+    <div class="right">
       <div class="title">KLUBREKORD</div>
-      <div class="subtitle">STOLT PRÆSENTERET FOR:</div>
       <div class="name">${name}</div>
-      <div class="divider"></div>
       <div class="time">${time}</div>
       <div class="event">${eventLine}</div>
       <div class="year">${year}</div>
-    </main>
+    </div>
   </div>
-</body>
-</html>`;
 
-      const blob = new Blob([html], { type: "text/html" });
+  <button class="download-btn" onclick="window.print()">Download som PDF</button>
+
+</body>
+</html>
+      `;
+
+      const blob = new Blob([diplomaHtml], {type:"text/html"});
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     }
 
-    /*** ÅRSRESUMÉ + TABLA CON BOTÓN DIPLOM ***/
-    function renderSummaryPage(entries){
-      const root = document.getElementById("summary-root");
-      const total = entries.length;
-
-      const byName = (a, b) =>
-        String(a["Navn"]||"").localeCompare(String(b["Navn"]||""), "da", { sensitivity:"base" }) ||
-        String(a["Løb"]||"").localeCompare(String(b["Løb"]||"", "da"), { numeric:true, sensitivity:"base" }) ||
-        cmpSmart(a["Tid"]||"", b["Tid"]||"");
-
-      const isDrenge = e => String(e["Kategori"]||"").toUpperCase().startsWith("DRENGE");
-      const isPiger  = e => String(e["Kategori"]||"").toUpperCase().startsWith("PIGER");
-      const drengeEntries = entries.filter(isDrenge).sort(byName);
-      const pigerEntries  = entries.filter(isPiger).sort(byName);
-
-      const HEADS = ["Navn","Alder","Løb","Tid","Kategori","Diplom"];
-
-      const renderTable = (rows) => {
-        if (!rows.length) return '<div class="status">Ingen registreringer i '+currentYear+'.</div>';
-        const trs = rows.map(e => {
-          const safeJson = JSON.stringify(e).replace(/"/g, '&quot;');
-          return (
-            '<tr>' +
-              '<td data-label="'+HEADS[0]+'">'+(e["Navn"]||"")+'</td>' +
-              '<td data-label="'+HEADS[1]+'">'+(e["Alder"]||"")+'</td>' +
-              '<td data-label="'+HEADS[2]+'">'+(e["Løb"]||"")+'</td>' +
-              '<td data-label="'+HEADS[3]+'">'+(e["Tid"]||"")+'</td>' +
-              '<td data-label="'+HEADS[4]+'">'+(e["Kategori"]||"")+'</td>' +
-              '<td data-label="'+HEADS[5]+'">'+
-                '<button type="button" onclick=\'openDiploma(JSON.parse(this.dataset.entry))\' data-entry="'+safeJson+'">Diplom</button>' +
-              '</td>' +
-            '</tr>'
-          );
-        }).join("");
-
-        return '' +
-          '<div class="table-wrap">' +
-            '<table class="responsive-table" aria-describedby="table-desc">' +
-              '<thead><tr>' +
-                '<th scope="col">'+HEADS[0]+'</th>' +
-                '<th scope="col">'+HEADS[1]+'</th>' +
-                '<th scope="col">'+HEADS[2]+'</th>' +
-                '<th scope="col">'+HEADS[3]+'</th>' +
-                '<th scope="col">'+HEADS[4]+'</th>' +
-                '<th scope="col">'+HEADS[5]+'</th>' +
-              '</tr></thead>' +
-              '<tbody>'+trs+'</tbody>' +
-            '</table>' +
-          '</div>';
-      };
-
-      root.innerHTML =
-        '<div id="table-desc" class="status">I alt <strong>' + total + '</strong> klubrekorder sat i ' + currentYear + '.</div>' +
-        '<div class="grid">' +
-          '<section class="card" aria-labelledby="drenge-title">' +
-            '<h2 id="drenge-title">Drenge</h2>' +
-            renderTable(drengeEntries) +
-          '</section>' +
-          '<section class="card" aria-labelledby="piger-title">' +
-            '<h2 id="piger-title">Piger</h2>' +
-            renderTable(pigerEntries) +
-          '</section>' +
-        '</div>';
-    }
-
+    /***********************
+     * TABLE + SUMMARY
+     ***********************/
     async function buildYearSummary(){
       try{
         showLoading(true);
-        setStatus("Genererer årsresumé…");
-        const datasets = await fetchAllCategories();
+        const cats = Object.keys(sheetUrls);
+
         let all = [];
-        for (const ds of datasets){
-          const label = ds.cat.replaceAll("_"," ");
-          const entries = collectYearEntriesFromMatrix(ds.rows, label, currentYear);
-          all = all.concat(entries);
+        for (const c of cats){
+          const csv = await fetchCSV(sheetUrls[c]);
+          const rows = parseCSV(csv);
+
+          // Buscamos filas del año
+          const found = [];
+          const yearRe = new RegExp("\\b"+currentYear+"\\b");
+
+          rows.forEach(r=>{
+            if (r.some(cell=>yearRe.test(cell))){
+              found.push({
+                Navn: r[1],
+                Alder: r[2],
+                "Løb": r[0],
+                Tid: r[3],
+                Kategori: c
+              })
+            }
+          });
+
+          all = all.concat(found);
         }
+
         renderSummaryPage(all);
-        setStatus("");
-      } catch(e){
-        console.error(e);
-        setStatus("Kunne ikke generere årsresumé. Tjek arkene eller forbindelsen.", true);
-      } finally{
+      }
+      catch(err){
+        console.error(err);
+      }
+      finally{
         showLoading(false);
       }
     }
 
-    // Init: genera automáticamente el resumen al abrir la página
-    (function init(){
-      buildYearSummary();
-    })();
+    function renderSummaryPage(entries){
+      const root = document.getElementById("summary-root");
+      const heads = ["Navn","Alder","Løb","Tid","Kategori","Diplom"];
+      const trs = entries.map(e => `
+<tr>
+  <td data-label="Navn">${e.Navn}</td>
+  <td data-label="Alder">${e.Alder}</td>
+  <td data-label="Løb">${e["Løb"]}</td>
+  <td data-label="Tid">${e.Tid}</td>
+  <td data-label="Kategori">${e.Kategori}</td>
+  <td><button onclick='openDiploma(${JSON.stringify(e)})'>Diplom</button></td>
+</tr>`).join("");
+
+      root.innerHTML = `
+        <div class="table-wrap">
+          <table class="responsive-table">
+            <thead>
+              <tr>${heads.map(h=>`<th>${h}</th>`).join("")}</tr>
+            </thead>
+            <tbody>${trs}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    buildYearSummary();
   </script>
+
 </body>
 </html>
-
-
