@@ -151,7 +151,7 @@
     function parseCSV(text){ return Papa.parse(text, { skipEmptyLines: true }).data; }
     async function fetchCSV(url){ const res=await fetch(url, { cache:"no-store" }); if(!res.ok) throw new Error("HTTP "+res.status); return await res.text(); }
 
-    /*** SUMMARY HELPERS ***/
+    /*** SUMMARY HELPERS (copiados de index.html) ***/
     function safeCell(rows, r, c){
       if (r < 0 || c < 0) return "";
       if (r >= rows.length) return "";
@@ -179,8 +179,10 @@
       return null;
     }
 
+    // Recolecta entradas del año actual en una matriz de hoja
     function collectYearEntriesFromMatrix(rows, categoryLabel, year){
       const entries = [];
+      // Misma expresión que en index.html: \bYEAR\b
       const yearRe = new RegExp("\\b" + year + "\\b");
       const seen = new Set();
 
@@ -198,8 +200,9 @@
 
           const time  = safeCell(rows, ri, ci - 1);
           const name  = safeCell(rows, ri, ci - 2);
-          const age   = safeCell(rows, ri, 1);
+          const age   = safeCell(rows, ri, 1);        // SIEMPRE columna B
 
+          // Evento (løb)
           let event = "";
           if (offset != null){
             event = safeCell(rows, ri - offset, ci - 2);
@@ -234,10 +237,11 @@
       return cats.map((cat, i) => ({ cat, rows: parsed[i]||[] }));
     }
 
-    /*** LIMPIEZA TEXTO ***/
+    /*** LIMPIEZA DE TEXTO PARA EL DIPLOMA ***/
     function cleanDisplay(val){
       return String(val || "")
-        .replace(/\\n/g, " ")
+        .replace(/\\n/g, " ")  // secuencia "\n" literal
+        .replace(/\n/g, " ")   // salto de línea real
         .replace(/\s+/g, " ")
         .trim();
     }
@@ -249,16 +253,20 @@
       const time  = cleanDisplay(entry["Tid"]);
       const loeb  = cleanDisplay(entry["Løb"]);
       const alder = cleanDisplay(entry["Alder"]);
-      const kategori = String(entry["Kategori"] || "").toUpperCase();
+      const kategori = String(entry["Kategori"] || "");
 
+      // Detectar KORTBANE / LANGBANE a partir de la categoría
       let bane = "";
-      if (kategori.includes("LANGBANE")) bane = "LANGBANE";
-      else if (kategori.includes("KORTBANE")) bane = "KORTBANE";
+      const upCat = kategori.toUpperCase();
+      if (upCat.includes("LANGBANE")) bane = "LANGBANE";
+      else if (upCat.includes("KORTBANE")) bane = "KORTBANE";
 
-      const eventLine = bane ? `${loeb} – ${alder} ÅR – ${bane}` : `${loeb} – ${alder} ÅR`;
+      const eventLine = bane
+        ? `${loeb} – ${alder} ÅR – ${bane}`
+        : `${loeb} – ${alder} ÅR`;
 
-      const html = `<!doctype html>
-<html lang="da">
+      const html = "<!doctype html>\\n" +
+`<html lang="da">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -272,7 +280,7 @@
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     body{
-      font-family:"Helvetica Neue",Arial,system-ui,sans-serif;
+      font-family: "Helvetica Neue", Arial, system-ui, sans-serif;
       background:var(--bg);
       display:flex;
       align-items:center;
@@ -281,7 +289,6 @@
       padding:24px;
       color:var(--ink);
     }
-    @page{ size:A4 landscape; margin:0; }
     .frame{
       background:#fff;
       max-width:960px;
@@ -318,20 +325,16 @@
       font-size:11px;
     }
     .club-logo{
-      width:90px;
-      height:90px;
+      width:80px;
+      height:80px;
       border-radius:50%;
       border:2px solid #fff;
       display:flex;
       align-items:center;
       justify-content:center;
-      overflow:hidden;
-      background:#fff;
-    }
-    .club-logo img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
+      font-size:11px;
+      text-align:center;
+      padding:8px;
     }
     .right{
       padding:48px 56px;
@@ -380,6 +383,25 @@
       letter-spacing:0.24em;
       color:var(--muted);
     }
+    @media (max-width:800px){
+      .frame{
+        grid-template-columns:1fr;
+        max-height:none;
+      }
+      .left{
+        flex-direction:row;
+        padding:18px 20px;
+      }
+      .left-top{
+        writing-mode:horizontal-tb;
+        transform:none;
+      }
+      .right{
+        padding:32px 20px 36px;
+      }
+      .title{font-size:26px;}
+      .name{font-size:24px;}
+    }
   </style>
 </head>
 <body>
@@ -390,7 +412,7 @@
       </div>
       <div class="left-bottom">
         <div class="club-logo">
-          <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/refs/heads/main/logo%20S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB%20(3).svg" alt="Søllerød Svømmeklub logo">
+          SØLLERØD<br/>SVØMMEKLUB
         </div>
       </div>
     </aside>
@@ -404,9 +426,6 @@
       <div class="year">${year}</div>
     </main>
   </div>
-  <script>
-    window.onload = function(){ window.print(); };
-  </script>
 </body>
 </html>`;
 
@@ -501,9 +520,12 @@
       }
     }
 
+    // Init: genera automáticamente el resumen al abrir la página
     (function init(){
       buildYearSummary();
     })();
   </script>
 </body>
 </html>
+
+
