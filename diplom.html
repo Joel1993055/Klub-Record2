@@ -297,19 +297,21 @@
     .left{
       background:var(--red);
       color:#fff;
-      padding:40px 24px;
+      padding:32px 26px 28px;
       display:flex;
       flex-direction:column;
-      justify-content:space-between;
-      align-items:center;
+      align-items:flex-start;
+      justify-content:flex-start;
       text-transform:uppercase;
       letter-spacing:0.18em;
       font-weight:600;
     }
     .left-top{
-      writing-mode:vertical-rl;
-      transform:rotate(180deg);
-      font-size:15px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-size:14px;
+      line-height:1.2;
     }
     .left-bottom{
       display:flex;
@@ -317,6 +319,7 @@
       align-items:center;
       gap:12px;
       font-size:11px;
+      margin-top:auto; /* empuja el logo al fondo, texto arriba */
     }
     .club-logo{
       width:80px;
