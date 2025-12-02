@@ -237,9 +237,28 @@
       return cats.map((cat, i) => ({ cat, rows: parsed[i]||[] }));
     }
 
+    /*** LIMPIEZA DE TEXTO PARA MOSTRAR EN EL DIPLOMA ***/
+    function cleanDisplay(val){
+      return String(val || "")
+        .replace(/\\n/g, " ")   // elimina "\n" literales que vengan de Google Sheets
+        .replace(/\s+/g, " ")   // compacta espacios / saltos de línea
+        .trim();
+    }
+
     /*** DIPLOM ***/
     function openDiploma(entry) {
       const year = currentYear;
+      const name  = cleanDisplay(entry.Navn);
+      const time  = cleanDisplay(entry["Tid"]);
+      const loeb  = cleanDisplay(entry["Løb"]);
+      const alder = cleanDisplay(entry["Alder"]);
+      const kategori = String(entry["Kategori"] || "");
+      let bane = "";
+      if (kategori.toUpperCase().includes("LANGBANE")) bane = "LANGBANE";
+      else if (kategori.toUpperCase().includes("KORTBANE")) bane = "KORTBANE";
+
+      const eventLine = bane ? (loeb + " – " + alder + " ÅR – " + bane) : (loeb + " – " + alder + " ÅR");
+
       const html = "<!doctype html>\\n" +
 `<html lang="da">
 <head>
@@ -383,7 +402,9 @@
   <div class="frame">
     <aside class="left">
       <div class="left-top">
-        DIPLOM&nbsp;&nbsp;SØLLERØD&nbsp;&nbsp;SVØMMEKLUB
+        <div>DIPLOM</div>
+        <div>SØLLERØD</div>
+        <div>SVØMMEKLUB</div>
       </div>
       <div class="left-bottom">
         <div class="club-logo">
@@ -394,10 +415,10 @@
     <main class="right">
       <div class="title">KLUBREKORD</div>
       <div class="subtitle">STOLT PRÆSENTERET FOR:</div>
-      <div class="name">${entry.Navn}</div>
+      <div class="name">${name}</div>
       <div class="divider"></div>
-      <div class="time">${entry["Tid"]}</div>
-      <div class="event">${entry["Løb"]} – ${entry["Alder"]} ÅR</div>
+      <div class="time">${time}</div>
+      <div class="event">${eventLine}</div>
       <div class="year">${year}</div>
     </main>
   </div>
