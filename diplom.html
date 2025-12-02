@@ -289,6 +289,10 @@
       padding:24px;
       color:var(--ink);
     }
+    @page{
+      size: A4 landscape;
+      margin: 0;
+    }
     .frame{
       background:#fff;
       max-width:960px;
@@ -325,16 +329,20 @@
       font-size:11px;
     }
     .club-logo{
-      width:80px;
-      height:80px;
+      width:90px;
+      height:90px;
       border-radius:50%;
       border:2px solid #fff;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size:11px;
-      text-align:center;
-      padding:8px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .club-logo img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
     }
     .right{
       padding:48px 56px;
@@ -412,7 +420,7 @@
       </div>
       <div class="left-bottom">
         <div class="club-logo">
-          SØLLERØD<br/>SVØMMEKLUB
+          <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Søllerød Svømmeklub logo">
         </div>
       </div>
     </aside>
@@ -426,6 +434,12 @@
       <div class="year">${year}</div>
     </main>
   </div>
+  <script>
+    // Abrir diálogo de impresión automáticamente para poder imprimir o guardar como PDF
+    window.onload = function(){
+      window.print();
+    };
+  </script>
 </body>
 </html>`;
 
