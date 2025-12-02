@@ -182,7 +182,8 @@
     // Recolecta entradas del año actual en una matriz de hoja
     function collectYearEntriesFromMatrix(rows, categoryLabel, year){
       const entries = [];
-      const yearRe = new RegExp("\\\\b"+year+"\\\\b");
+      // Misma expresión que en index.html: \bYEAR\b
+      const yearRe = new RegExp("\\b" + year + "\\b");
       const seen = new Set();
 
       for (let ri=0; ri<rows.length; ri++){
