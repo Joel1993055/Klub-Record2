@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Klubrekorder</title>
-
   <style>
     :root{
       --red:#d60000;
@@ -13,18 +12,12 @@
       --card:#fff;
       --ink:#111;
       --muted:#666;
-
-      /* NEW (minimal table look) */
-      --line:#e7e7e7;
-      --line-strong:#d8d8d8;
-      --head:#fafafa;
-      --highlight:#fff7cc;
-
-      --radius:12px;
+      --border:#000;
+      --highlight:#fff5b1;
+      --radius:10px;
       --shadow:0 2px 12px rgba(0,0,0,0.08);
     }
     *,*::before,*::after{box-sizing:border-box}
-
     body {
       font-family: Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       color: var(--ink);
@@ -34,246 +27,55 @@
       text-align: center;
       line-height: 1.35;
     }
-
     .logo { display:block; margin:0 auto 10px; width:150px; max-width:60vw; height:auto; }
-
-    h1 {
-      color:var(--red);
-      font-size:clamp(22px,4vw,36px);
-      margin:6px 0 10px;
-      line-height:1.1;
-    }
-
-    .toolbar {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      justify-content:center;
-      margin:12px auto 16px;
-      padding:0 4px;
-    }
-
-    .button-container {
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:8px;
-      width:100%;
-      max-width:1100px;
-    }
-
+    h1 { color:var(--red); font-size:clamp(22px,4vw,36px); margin:6px 0 10px; line-height:1.1; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; margin:12px auto 16px; padding:0 4px; }
+    .button-container { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; width:100%; max-width:1100px; }
     button.category-btn{
-      padding:12px 14px;
-      font-size:clamp(13px,2.8vw,14px);
-      border:1px solid transparent;
-      border-radius:10px;
-      background-color:var(--red);
-      color:#fff;
-      cursor:pointer;
+      padding:12px 14px; font-size:clamp(13px,2.8vw,14px); border:1px solid transparent; border-radius:8px;
+      background-color:var(--red); color:#fff; cursor:pointer;
       transition:background-color .2s, border-color .2s, transform .06s ease;
       min-width:120px;
     }
     button.category-btn:hover{ background-color:var(--red-dark); }
     button.category-btn:active{ transform:scale(0.98); }
-    button.category-btn.active{ background:#222; border-color:#000; }
+    button.category-btn.active{ background:#333; border-color:#000; }
     #btn-summary{ background:#222; }
     #btn-summary:hover{ background:#000; }
 
     .searchbox{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 12px;
-      background:var(--card);
-      border:1px solid #ddd;
-      border-radius:12px;
+      display:flex; align-items:center; gap:8px; padding:10px 12px;
+      background:var(--card); border:1px solid #ddd; border-radius:10px;
       box-shadow:0 1px 2px rgba(0,0,0,.04);
       min-width:min(520px,95vw);
       margin:0 auto;
     }
-    .searchbox input{
-      width:100%;
-      border:0;
-      outline:0;
-      font-size:clamp(14px,3.2vw,15px);
-      background:transparent;
-      color:var(--ink);
-    }
+    .searchbox input{ width:100%; border:0; outline:0; font-size:clamp(14px,3.2vw,15px); background:transparent; color:var(--ink); }
     .searchbox:focus-within{ border-color:#bbb; }
 
     .container{
-      width:min(1200px,100%);
-      margin:12px auto 0;
-      background:var(--card);
-      padding:12px;
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-      text-align:left;
+      width:min(1200px,100%); margin:12px auto 0; background:var(--card); padding:10px;
+      border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; text-align:left;
     }
-
-    /* ===== MINIMAL TABLE ===== */
-    .table-wrap{
-      overflow:auto;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#fff;
-      -webkit-overflow-scrolling: touch;
+    .table-wrap{ overflow:auto; border-radius:8px; border:1px solid #e6e6e6; -webkit-overflow-scrolling: touch; }
+    table{ width:100%; border-collapse:collapse; font-size:clamp(13px,3vw,14px); table-layout:auto; }
+    caption{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+    thead th, td{
+      padding:10px 12px; border:1px solid var(--border); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-
-    table{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      font-size:clamp(13px,3vw,14px);
-      table-layout:auto;
-    }
-
-    caption{
-      position:absolute;
-      width:1px;
-      height:1px;
-      overflow:hidden;
-      clip:rect(0 0 0 0);
-      white-space:nowrap;
-    }
-
-    thead th{
-      position:sticky;
-      top:0;
-      z-index:2;
-      background:var(--head);
-      border-bottom:1px solid var(--line-strong);
-      padding:12px 12px;
-      text-align:left;
-      font-weight:700;
-      color:#111;
-      user-select:none;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-
-    thead th .sort-ind{
-      margin-left:6px;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    tbody td{
-      padding:11px 12px;
-      border-bottom:1px solid var(--line);
-      text-align:left;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      background:#fff;
-    }
-
-    tbody tr:nth-child(even){ background:#fcfcfc; }
-    tbody tr:nth-child(even) td{ background:#fcfcfc; }
-    tbody tr:hover{ background:#f6f6f6; }
-    tbody tr:hover td{ background:#f6f6f6; }
-
-    /* Opcional: fija la primera columna (mejor legibilidad en scroll horizontal) */
-    thead th:first-child,
-    tbody td:first-child{
-      position:sticky;
-      left:0;
-      z-index:3;
-    }
-    thead th:first-child{
-      background:var(--head);
-      box-shadow: 6px 0 10px rgba(0,0,0,0.04);
-    }
-    tbody td:first-child{
-      background:inherit;
-      box-shadow: 6px 0 10px rgba(0,0,0,0.03);
-    }
-
-    /* “KR” como chip visual */
-    .kr-row{ font-weight:700; }
-    .kr-row td:first-child::before{
-      content:"KR";
-      display:inline-block;
-      margin-right:8px;
-      font-weight:800;
-      font-size:12px;
-      padding:2px 8px;
-      border-radius:999px;
-      background:#111;
-      color:#fff;
-      vertical-align:middle;
-    }
-
-    /* highlight del año */
-    .year-highlight{
-      background:var(--highlight) !important;
-      font-weight:700;
-    }
-
-    /* si quieres mantener “test-cell”, que sea más suave */
-    .test-cell{
-      background:#ffe6e6 !important;
-      color:#111;
-      font-weight:700;
-    }
-
+    thead th{ position:sticky; top:0; background:#fff; z-index:2; font-weight:700; user-select:none; cursor:pointer; }
+    thead th .sort-ind{ margin-left:6px; font-size:12px; color:var(--muted); }
+    tbody tr:nth-child(even){ background-color:#fafafa; }
+    tbody tr:hover{ background-color:#f1f1f1; }
+    .test-cell{ background:#ffcccc !important; color:#000; font-weight:bold; }
+    .kr-row{ font-weight:bold; }
+    .year-highlight{ background:var(--highlight) !important; font-weight:bold; }
     mark { background: #fff799; padding: 0 2px; border-radius: 2px; }
-
-    .loading{
-      display:none;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      margin:14px 0;
-    }
+    .loading{ display:none; flex-direction:column; align-items:center; justify-content:center; gap:10px; margin:14px 0; }
     .shark-spinner{ font-size:40px; display:inline-block; animation:spinShark 1s linear infinite; }
     @keyframes spinShark{ 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-
     .status{ color:var(--muted); font-size:12px; margin-top:6px; text-align:center; }
     .error{ color:#b00020; font-weight:600; }
-
-    /* MÓVIL: tabla -> tarjetas apiladas (como en tu resumen) */
-    @media (max-width:700px){
-      .table-wrap{ border:0; background:transparent; }
-      table{ border:0; }
-      thead{
-        border:0; clip:rect(0 0 0 0); height:1px; margin:-1px; overflow:hidden; padding:0; position:absolute; width:1px;
-      }
-      tbody tr{
-        display:block;
-        margin:10px 0 14px;
-        border:1px solid #e6e6e6;
-        border-radius:12px;
-        box-shadow:0 1px 8px rgba(0,0,0,.04);
-        background:#fff !important;
-      }
-      tbody td{
-        display:grid;
-        grid-template-columns: 42% 58%;
-        gap:10px;
-        text-align:left;
-        white-space:normal;
-        border:none;
-        border-bottom:1px solid #eee;
-        padding:10px 12px;
-        background:#fff !important;
-      }
-      tbody td:last-child{ border-bottom:none; }
-      tbody td::before{
-        content: attr(data-label);
-        font-weight:700;
-        color:#333;
-      }
-      /* desactiva sticky en móvil (evita glitches) */
-      thead th:first-child,
-      tbody td:first-child{
-        position:static;
-        box-shadow:none;
-      }
-    }
 
     @media (max-width:860px){
       .searchbox{ min-width:unset; width:100%; }
@@ -286,16 +88,12 @@
       .logo{ width:120px; }
       .toolbar{ gap:8px; }
       button.category-btn{ flex:1 1 100%; padding:12px; }
+      thead th, td{ padding:8px 10px; }
     }
   </style>
 </head>
-
 <body>
-  <img
-    src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png"
-    alt="Klublogo"
-    class="logo"
-  />
+  <img src="https://raw.githubusercontent.com/Joel1993055/Klub-Record2/main/S%C3%98LLER%C3%98D%20SV%C3%98MMEKLUB.png" alt="Klublogo" class="logo" />
   <h1>Klubrekorder</h1>
 
   <div class="toolbar">
@@ -306,7 +104,6 @@
       <button class="category-btn" data-category="PIGER_LANGBANE" role="tab">Piger Langbane</button>
       <button id="btn-summary" class="category-btn" type="button" title="Årets klubrekorder">Årsresumé <span id="year-tag"></span></button>
     </div>
-
     <div class="searchbox" aria-label="Søg i tabellen">
       🔎 <input id="search" type="search" placeholder="Søg i alle kolonner…" aria-label="Søg i tabellen" />
     </div>
@@ -318,7 +115,6 @@
       <p>Indlæser data…</p>
     </div>
     <div class="status" id="status" aria-live="polite"></div>
-
     <div class="table-wrap">
       <table id="records">
         <caption>Klubrekorder – tabel</caption>
@@ -350,61 +146,21 @@
     /*** UTILS ***/
     const $ = (sel, el=document) => el.querySelector(sel);
     const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-    function showLoading(show){
-      const ld = $(".loading");
-      ld.style.display = show ? "flex" : "none";
-      ld.setAttribute("aria-busy", show ? "true" : "false");
-    }
-    function setStatus(msg, isError=false){
-      const s = $("#status");
-      s.textContent = msg || "";
-      s.classList.toggle("error", !!isError);
-    }
-    function debounce(fn, ms=200){
-      let t;
-      return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
-    }
-    function timeToSeconds(txt){
-      if(!txt) return NaN;
-      const s = String(txt).trim();
-      if(!s) return NaN;
-      const parts = s.split(":");
-      if(parts.length===1){
-        return parseFloat(parts[0].replace(",","."));
-      }
-      let sec=0;
-      for(let i=0;i<parts.length;i++){
-        const p = parts[i].replace(",",".");
-        const val = parseFloat(p);
-        if(isNaN(val)) return NaN;
-        const pow = parts.length-1-i;
-        sec += val * Math.pow(60, pow);
-      }
-      return sec;
-    }
-    function cmpSmart(a,b){
-      const ta = String(a).includes(":") ? timeToSeconds(a) : NaN;
-      const tb = String(b).includes(":") ? timeToSeconds(b) : NaN;
-      if(!isNaN(ta) && !isNaN(tb)) return ta-tb;
-      return String(a).localeCompare(String(b), "da", { numeric:true, sensitivity:"base" });
-    }
-    function parseCSV(text){
-      return Papa.parse(text, { skipEmptyLines: true }).data;
-    }
-    async function fetchCSV(url){
-      const res = await fetch(url, { cache:"no-store" });
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.text();
-    }
+    function showLoading(show){ const ld=$(".loading"); ld.style.display=show?"flex":"none"; ld.setAttribute("aria-busy", show ? "true":"false"); }
+    function setStatus(msg, isError=false){ const s=$("#status"); s.textContent=msg||""; s.classList.toggle("error", !!isError); }
+    function debounce(fn, ms=200){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
+    function timeToSeconds(txt){ if(!txt)return NaN; const s=String(txt).trim(); if(!s)return NaN; const parts=s.split(":"); if(parts.length===1){return parseFloat(parts[0].replace(",","."));} let sec=0; for(let i=0;i<parts.length;i++){ const p=parts[i].replace(",","."), val=parseFloat(p); if(isNaN(val)) return NaN; const pow=parts.length-1-i; sec+=val*Math.pow(60,pow);} return sec; }
+    function cmpSmart(a,b){ const ta=String(a).includes(":")?timeToSeconds(a):NaN; const tb=String(b).includes(":")?timeToSeconds(b):NaN; if(!isNaN(ta)&&!isNaN(tb)) return ta-tb; return String(a).localeCompare(String(b),"da",{numeric:true,sensitivity:"base"}); }
+    function parseCSV(text){ return Papa.parse(text, { skipEmptyLines: true }).data; }
+    async function fetchCSV(url){ const res=await fetch(url, { cache:"no-store" }); if(!res.ok) throw new Error(`HTTP ${res.status}`); return await res.text(); }
 
     /*** TABLE RENDER ***/
     function renderTable(){
       const table = $("#records");
-      if(!fullRows.length){
+      if (!fullRows.length){
         table.innerHTML = "<thead></thead><tbody><tr><td>Ingen data.</td></tr></tbody>";
         return;
       }
-
       const header = (fullRows[1] || []).map(x => String(x||"").replace(/"/g,""));
 
       // thead
@@ -413,10 +169,8 @@
         const isTest = TEST_REGEX.test(col);
         const className = isTest ? "test-cell" : "";
         let ind = "";
-        if(sortState.index === i) ind = sortState.dir === 1 ? "▲" : "▼";
-        thead += `<th class="${className}" data-col="${i}" scope="col" aria-sort="${
-          sortState.index===i ? (sortState.dir===1?'ascending':'descending') : 'none'
-        }">${col} <span class="sort-ind">${ind}</span></th>`;
+        if (sortState.index === i) ind = sortState.dir === 1 ? "▲" : "▼";
+        thead += `<th class="${className}" data-col="${i}" scope="col" aria-sort="${sortState.index===i ? (sortState.dir===1?'ascending':'descending') : 'none'}">${col} <span class="sort-ind">${ind}</span></th>`;
       });
       thead += "</tr></thead>";
 
@@ -427,49 +181,40 @@
       // tbody
       const yearRegex = new RegExp(`\\b${currentYear}\\b`);
       let tbody = "<tbody>";
-
       filteredRows.forEach((row) => {
         const rowData = row.map(c => String(c||"").trim());
         const isKR = rowData.some(cell => cell === "KR");
         const rowClass = isKR ? "kr-row" : "";
-
         const toHighlight = new Set();
         const emojiAt = new Set();
         rowData.forEach((cell, idx) => {
-          if(yearRegex.test(cell)){
-            [idx, idx-1, idx-2].forEach(k => { if(k >= 0 && k < rowData.length) toHighlight.add(k); });
+          if (yearRegex.test(cell)) {
+            [idx, idx-1, idx-2].forEach(k => { if (k >= 0 && k < rowData.length) toHighlight.add(k); });
             const t = idx - 2;
-            if(t >= 0 && t < rowData.length) emojiAt.add(t);
+            if (t >= 0 && t < rowData.length) emojiAt.add(t);
           }
         });
-
         tbody += `<tr class="${rowClass}">`;
-
         rowData.forEach((cell, idx) => {
           let clean = cell.replace(/"/g,"");
           const isTestCell = TEST_REGEX.test(clean);
-
           let cls = isTestCell ? "test-cell" : "";
-          if(toHighlight.has(idx)) cls += " year-highlight";
-          if(emojiAt.has(idx)) clean = "🆕 " + clean;
-          if(regex) clean = clean.replace(regex, '<mark>$1</mark>');
-
-          // NEW: data-label for mobile stacked view
-          const label = header[idx] || `Kolonne ${idx+1}`;
-          tbody += `<td class="${cls.trim()}" data-label="${label.replace(/"/g,'&quot;')}">${clean}</td>`;
+          if (toHighlight.has(idx)) cls += " year-highlight";
+          if (emojiAt.has(idx)) clean = "🆕 " + clean;
+          if (regex) clean = clean.replace(regex, '<mark>$1</mark>');
+          tbody += `<td class="${cls.trim()}">${clean}</td>`;
         });
-
         tbody += `</tr>`;
       });
-
       tbody += "</tbody>";
+
       table.innerHTML = thead + tbody;
 
       // sort handlers
       $$("#records thead th").forEach(th=>{
         th.addEventListener("click", () => {
           const col = +th.dataset.col;
-          if(sortState.index === col){
+          if (sortState.index === col) {
             sortState.dir = -sortState.dir;
           } else {
             sortState.index = col;
@@ -489,17 +234,14 @@
         setStatus("");
         showLoading(true);
         $("#records").innerHTML = "";
-
         const txt = await fetchCSV(sheetUrls[cat]);
         const data = parseCSV(txt);
         fullRows = data.filter(row => row.some(cell => String(cell||"").trim() !== ""));
-
-        if(fullRows.length < 2){
+        if (fullRows.length < 2){
           setStatus("Ingen data i arket.", true);
           showLoading(false);
           return;
         }
-
         filteredRows = fullRows.slice(2);
         sortState = { index: null, dir: 1 };
         renderTable();
@@ -521,66 +263,68 @@
 
     /*** SUMMARY HELPERS (robusto para tus hojas) ***/
     function safeCell(rows, r, c){
-      if(r < 0 || c < 0) return "";
-      if(r >= rows.length) return "";
+      if (r < 0 || c < 0) return "";
+      if (r >= rows.length) return "";
       const row = rows[r];
-      if(!row || c >= row.length) return "";
+      if (!row || c >= row.length) return "";
       return String(row[c] || "").trim();
     }
     function findRowLabel(row){
-      for(let j=0; j<Math.min(3,row.length); j++){
+      for (let j=0; j<Math.min(3,row.length); j++){
         const t = String(row[j]||"").trim();
-        if(t) return t;
+        if (t) return t;
       }
       return "";
     }
     function parseRowLabelForAge(label){
       const s = String(label||"").toUpperCase();
       const m = s.match(/\b(10|11|12|13|14|15|16|17|18)\b/);
-      if(m) return parseInt(m[1], 10);
-      if(/\bKR\b/.test(s) || /\bSENIOR\b/.test(s)) return "KR";
+      if (m) return parseInt(m[1], 10);
+      if (/\bKR\b/.test(s) || /\bSENIOR\b/.test(s)) return "KR";
       return null;
     }
     function ageToOffset(age){
-      if(age === "KR") return 9;
-      if(typeof age === "number") return Math.max(1, age - 9);
+      if (age === "KR") return 9;
+      if (typeof age === "number") return Math.max(1, age - 9);
       return null;
     }
 
+    // Recolecta entradas del año actual en una matriz de hoja
     function collectYearEntriesFromMatrix(rows, categoryLabel, year){
       const entries = [];
       const yearRe = new RegExp(`\\b${year}\\b`);
       const seen = new Set();
 
-      for(let ri=0; ri<rows.length; ri++){
+      for (let ri=0; ri<rows.length; ri++){
         const row = rows[ri];
-        if(!row) continue;
+        if (!row) continue;
 
         const rowLabel = findRowLabel(row);
         const ageParsedForOffset = parseRowLabelForAge(rowLabel);
         const offset = ageToOffset(ageParsedForOffset);
 
-        for(let ci=0; ci<row.length; ci++){
+        for (let ci=0; ci<row.length; ci++){
           const cell = String(row[ci]||"").trim();
-          if(!yearRe.test(cell)) continue;
+          if (!yearRe.test(cell)) continue;
 
           const time  = safeCell(rows, ri, ci - 1);
           const name  = safeCell(rows, ri, ci - 2);
           const age   = safeCell(rows, ri, 1);        // SIEMPRE columna B
 
+          // Evento (løb)
           let event = "";
-          if(offset != null){
+          if (offset != null){
             event = safeCell(rows, ri - offset, ci - 2);
           }
-          if(!event){
+          if (!event) {
             event = safeCell(rows, 1, ci - 2) || safeCell(rows, 0, ci - 2);
           }
 
           const hasCore = time && (name || event);
-          if(!hasCore) continue;
+          if (!hasCore) continue;
 
           const key = `${categoryLabel}|${name}|${age}|${time}|${event}`;
-          if(seen.has(key)) continue;
+          if (seen.has(key)) continue;
           seen.add(key);
 
           entries.push({
@@ -602,23 +346,27 @@
       return cats.map((cat, i) => ({ cat, rows: parsed[i]||[] }));
     }
 
+    // --- Årsresumé: genera HTML responsive y abre con Blob URL ---
     function openSummaryPage(entries){
       const total = entries.length;
 
+      // Orden danés por nombre; si empata, por prueba y luego por tiempo
       const byName = (a, b) =>
         String(a["Navn"]||"").localeCompare(String(b["Navn"]||""), "da", { sensitivity:"base" }) ||
         String(a["Løb"]||"").localeCompare(String(b["Løb"]||"", "da"), { numeric:true, sensitivity:"base" }) ||
         cmpSmart(a["Tid"]||"", b["Tid"]||"");
 
+      // Split por género
       const isDrenge = e => String(e["Kategori"]||"").toUpperCase().startsWith("DRENGE");
       const isPiger  = e => String(e["Kategori"]||"").toUpperCase().startsWith("PIGER");
       const drengeEntries = entries.filter(isDrenge).sort(byName);
       const pigerEntries  = entries.filter(isPiger).sort(byName);
 
+      // Encabezados para data-label en vista móvil
       const HEADS = ["Navn","Alder","Løb","Tid","Kategori"];
 
       const renderTable = (rows) => {
-        if(!rows.length) return `<div class="empty">Ingen registreringer i ${currentYear}.</div>`;
+        if (!rows.length) return `<div class="empty">Ingen registreringer i ${currentYear}.</div>`;
         const trs = rows.map(e => `
           <tr>
             <td data-label="${HEADS[0]}">${e["Navn"]||""}</td>
@@ -644,6 +392,7 @@
         `;
       };
 
+      // HTML completo de la página (con CSS responsive de tabla apilada)
       const html = `<!doctype html>
 <html lang="da">
 <head>
@@ -652,50 +401,51 @@
 <title>Årsresumé ${currentYear}</title>
 <style>
   :root{
-    --red:#d60000; --ink:#111; --muted:#666; --bg:#f6f6f6; --card:#fff;
-    --line:#e7e7e7; --line-strong:#d8d8d8; --head:#fafafa;
+    --red:#d60000; --ink:#111; --muted:#666; --bg:#f6f6f6; --card:#fff; --border:#000;
   }
   *{box-sizing:border-box}
   body{font-family:Arial,system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:20px;}
-  .wrap{max-width:1200px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:20px;}
+  .wrap{max-width:1200px;margin:0 auto;background:var(--card);border:1px solid #e6e6e6;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:20px;}
   .header{display:flex; align-items:center; gap:14px; margin-bottom:4px; flex-wrap:wrap;}
   .logo{width:70px;height:auto;max-width:22vw;}
   h1{margin:0;color:var(--red);font-size:clamp(22px,4vw,32px)}
   .sub{margin:6px 0 14px; color:var(--muted); line-height:1.5; font-size:clamp(13px,3vw,15px);}
   .badge{display:inline-flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:4px 10px;font-size:13px;margin-left:8px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
-  .card{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff; box-shadow:0 1px 6px rgba(0,0,0,.04);}
+  .card{border:1px solid #e6e6e6;border-radius:10px;padding:14px;background:#fff; box-shadow:0 1px 6px rgba(0,0,0,.04);}
   .card h2{margin:0 0 8px; font-size:clamp(16px,3.5vw,18px)}
-  .table-wrap{overflow:auto; border-radius:10px; border:1px solid var(--line); -webkit-overflow-scrolling: touch;}
-  table{width:100%;border-collapse:separate;border-spacing:0;font-size:clamp(12.5px,3vw,14px); table-layout:auto;}
-  th{position:sticky;top:0;background:var(--head);z-index:1;text-align:left;padding:12px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
-  td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
-  tr:nth-child(even){background:#fcfcfc}
+  .table-wrap{overflow:auto; border-radius:8px; border:1px solid #e6e6e6; -webkit-overflow-scrolling: touch;}
+  table{width:100%;border-collapse:collapse;font-size:clamp(12.5px,3vw,14px); table-layout:auto;}
+  th,td{border:1px solid var(--border);padding:10px;text-align:center;white-space:nowrap}
+  thead th{position:sticky;top:0;background:#fff;z-index:1}
+  tr:nth-child(even){background:#fafafa}
   .empty{color:var(--muted); font-style:italic; border:1px dashed #ddd; border-radius:8px; padding:16px; text-align:center;}
+  /* --- Vista móvil: tabla apilada como tarjetas --- */
   @media (max-width:700px){
     .grid{grid-template-columns:1fr;}
     .logo{width:56px;}
     .wrap{padding:14px;}
     .table-wrap{border:0}
     table.responsive-table{border:0}
-    table.responsive-table thead{
+    table.responsive-table thead{ 
+      /* Ocultamos cabecera para apilado accesible */
       border:0; clip:rect(0 0 0 0); height:1px; margin:-1px; overflow:hidden; padding:0; position:absolute; width:1px;
     }
     table.responsive-table tbody tr{
       display:block;
       margin:10px 0 14px;
-      border:1px solid var(--line);
+      border:1px solid #e6e6e6;
       border-radius:10px;
       box-shadow:0 1px 6px rgba(0,0,0,.04);
       background:#fff;
     }
     table.responsive-table tbody tr:nth-child(even){ background:#fff; }
     table.responsive-table td{
-      display:grid;
+      display:grid; 
       grid-template-columns: 40% 60%;
       gap:8px;
       text-align:left;
-      white-space:normal;
+      white-space:normal; /* permite salto de línea */
       border:none;
       border-bottom:1px solid #eee;
       padding:10px 12px;
@@ -718,7 +468,7 @@
           <span class="badge" title="Antal klubrekorder i det aktuelle år">🔴 ${total} rekorder</span>
         </h1>
         <div class="sub" id="table-desc">
-          Dette dokument viser alle klubrekorder sat i ${currentYear}.
+          Dette dokument viser alle klubrekorder sat i ${currentYear}. Tallet i mærket angiver det samlede antal rekorder opnået i løbet af året.
         </div>
       </div>
     </div>
@@ -738,6 +488,7 @@
 </body>
 </html>`;
 
+      // Abrir con Blob URL
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
@@ -749,7 +500,7 @@
         setStatus("Genererer årsresumé…");
         const datasets = await fetchAllCategories();
         let all = [];
-        for(const ds of datasets){
+        for (const ds of datasets){
           const label = ds.cat.replaceAll("_"," ");
           const entries = collectYearEntriesFromMatrix(ds.rows, label, currentYear);
           all = all.concat(entries);
@@ -776,7 +527,7 @@
     $$(".category-btn").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const cat = btn.dataset.category;
-        if(cat && sheetUrls[cat]) loadCategory(cat);
+        if (cat && sheetUrls[cat]) loadCategory(cat);
       });
     });
 
